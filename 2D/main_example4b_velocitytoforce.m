@@ -20,6 +20,9 @@ close all
 %setting the viscosity
 mu = 1; 
 
+%choose blob
+blob_num = 2;
+
 %number of points on boundary where velocity is set and force is computed 
 N = 100;    
 
@@ -46,7 +49,7 @@ u1 = -cos(2*t)/8 + 5*cos(4*t)/16 - cos(4*t)/4;
 u2 = sin(2*t)/8 + 5*sin(4*t)/16 - sin(4*t)/4; 
 
 %computing the force 
-f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep,mu);
+f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep,mu,blob_num);
 
 %f is a force and to compare to exact solution need force density - divide
 %by radius*dt 

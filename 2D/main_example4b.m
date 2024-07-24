@@ -15,6 +15,9 @@ close all
 %setting the viscosity
 mu = 1; 
 
+%choose blob
+blob_num = 2;
+
 %domain on which velocity is computed 
 x1min = 0; 
 x1max = 2; 
@@ -64,7 +67,7 @@ x1 = x1m(:);
 x2 = x2m(:);
 
 %computing velocity 
-u = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[x1,x2],ep,mu);
+u = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[x1,x2],ep,mu,blob_num);
 u1 = u(:,1);
 u2 = u(:,2); 
 u1m = reshape(u1,size(xx1,2),size(xx2,2)); 

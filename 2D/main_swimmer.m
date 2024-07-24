@@ -12,9 +12,14 @@ close all
 
 
 %% Parameters to set 
-
+% Suppose we had a movie of the swimmer and therefore velocity along the
+% flagella. Set net force and net torqu on the circle to be zero. (No slip
+% and biologically what's done).
 %viscosity 
 mu = 1; 
+
+%choose blob
+blob_num = 2;
 
 %wavenumber of flagella; 
 k = 2*pi;
@@ -38,6 +43,9 @@ x2min = -1;
 x2max = 1; 
 
 %resolution for velocity grid in fluid 
+% This resolution has no impact on the accuracy of the method!
+% All the accuracy depends on epsilon. What matters in terms of
+% discretization is the number of points along the boundary (flagella).
 Nx1 = 60; 
 Nx2 = 40; 
 
@@ -67,12 +75,13 @@ zc1 = -a;
 z1 = zc1 + a*cos(t);
 z2 = a*sin(t); 
 
-%velocity of body 
+%velocity of body (set to 0)
 vz1 = 0*z1; 
 vz2 = 0*z2; 
 
 %regularization parameter
-ep = ds/4; 
+ep = ds/4; % Needs to be wide enough that blobs overlap so there's no flow
+           % between the discretized points.
 
 %points on which velocity will be computed from forces
 xx1 = linspace(x1min,x1max,Nx1);
@@ -95,13 +104,14 @@ for t = 0:dtstep:tfinal
 
     %location of flagella 
     y1 = s; 
-    y2 = 0.2*s.*sin(k*s-w*t);
+    y2 = 0.2*s.*sin(k*s-w*t); % Take derivative wrt to t to get velocity
 
     %velocity of flagella (derivative wrt time of location) 
     vy1 = 0*s; 
     vy2 = -0.2*w*s.*cos(k*s-w*t); 
 
-    %concatenate location of swimmer and flagella 
+    %concatenate location of swimmer and flagella (careful not to duplicate
+    %point by having same point on flagella AND on body.
     sw1 = [y1;z1];
     sw2 = [y2;z2]; 
 
@@ -110,16 +120,21 @@ for t = 0:dtstep:tfinal
     v2 = [vy2; vz2];
 
     %computing forces on swimmer 
-    [f,uo,omega] = RegStokeslets2D_velocitytoforce_augmented([sw1 sw2],[sw1 sw2],[v1 v2],ep,mu);
+    [f,uo,omega] = RegStokeslets2D_velocitytoforce_augmented([sw1 sw2],[sw1 sw2],[v1 v2],ep,mu,blob_num);
+    % Notice setting the velocity at the same points where computing forces
+    % (i.e., x's and y's same locations)
 
     %%computing velocity on swimmer from forces - just to check 
-    uswimmer = RegStokeslets2D_forcetovelocity([sw1 sw2],f,[sw1 sw2],ep,mu);
+    uswimmer = RegStokeslets2D_forcetovelocity([sw1 sw2],f,[sw1 sw2],ep,mu,blob_num);
     %%adding in background velocities to swimmer velocity - checks that we are getting what we expect 
+    % Notice that we need to put back u0 and omega otherwise net force and
+    % net torque would not be 0 and therefore no swimmer because not using
+    % rigid body motion.
     %uswimmer_b = [uswimmer(:,1)-uo(1)+sw2*omega uswimmer(:,2)-uo(2)-sw1*omega];
     %max(max([abs(uswimmer_b(:,1)-v1) abs(uswimmer_b(:,2)-v2)]))
 
     %computing velocity on fluid grid 
-    u = RegStokeslets2D_forcetovelocity([sw1 sw2],f,[x1 x2],ep,mu);
+    u = RegStokeslets2D_forcetovelocity([sw1 sw2],f,[x1 x2],ep,mu,blob_num);
     u1 = u(:,1);
     u2 = u(:,2); 
     %changing frame of reference to swimmer 

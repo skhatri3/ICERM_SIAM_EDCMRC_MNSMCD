@@ -19,6 +19,9 @@ mu = 1;
 %radius of cylinder  
 a = 1; 
 
+%choose blob
+blob_num = 2;
+
 %domain on which velocity is computed 
 x1min = -2; 
 x1max = 2; 
@@ -52,7 +55,7 @@ v1 = 1 + 0*t;
 v2 = 0*t; 
 
 %computing forces on cylinder boundary 
-f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[v1,v2],ep,mu);
+f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[v1,v2],ep,mu,blob_num);
 f1 = f(:,1); 
 f2 = f(:,2);
 
@@ -64,7 +67,7 @@ x1 = x1m(:);
 x2 = x2m(:);
 
 %computing velocity on grid 
-u = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[x1,x2],ep,mu);
+u = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[x1,x2],ep,mu,blob_num);
 u1 = u(:,1); 
 u2 = u(:,2);
 u1m = reshape(u1,size(xx1,2),size(xx2,2)); 

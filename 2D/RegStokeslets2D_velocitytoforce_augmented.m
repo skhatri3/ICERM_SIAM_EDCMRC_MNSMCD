@@ -1,4 +1,4 @@
-function [f,ut,omega] = RegStokeslets2D_velocitytoforce_augmented(y,x,u,ep,mu)
+function [f,ut,omega] = RegStokeslets2D_velocitytoforce_augmented(y,x,u,ep,mu,blob_num)
 
 % Computes forces at set of points and constant translational and rotational 
 % background velocities when given a set of points and velocities at those 
@@ -47,11 +47,11 @@ end
 R2 = XY1.^2 + XY2.^2 + ep^2; 
 R = sqrt( R2 ); 
 
-[A, B] = reg_fncs(ep,R); 
+[H1, H2] = reg_fncs(ep,R,blob_num); 
 
-M11 = A + B.*XY1.*XY1; 
-M22 = A + B.*XY2.*XY2; 
-M12 = B.*XY1.*XY2; 
+M11 = H1 + H2.*XY1.*XY1; 
+M22 = H1 + H2.*XY2.*XY2; 
+M12 = H2.*XY1.*XY2; 
 %M21 = B.*XY2.*XY1; 
 
 M = [M11 M12; M12 M22]/4/pi/mu;
