@@ -58,8 +58,8 @@ y2_bot = ymin*ones(size(y1_bot));
 y2_side = (ymin+ds:ds:ymax-ds)';
 y1_side = zeros(size(y2_side));
 %coordiantes of boundary points
-y1 = [y1_top1; y1_top2;y1_top3;y1_bot; y1_side];
-y2 = [y2_top1; y2_top2;y2_top3;y2_bot; y2_side];
+y1 = [y1_top1;y1_top3;y1_bot; y1_side; y1_top2];
+y2 = [y2_top1;y2_top3;y2_bot; y2_side; y2_top2];
 
 
 
@@ -81,8 +81,8 @@ a=10;
 u1_side=-a*(y2_side-ymin).*(y2_side-ymax);
 u2_side=zeros(size(y1_side));
 
-u1 = [u1_top1;u1_top2;u1_top3; u1_bot; u1_side];
-u2 = [u2_top1;u2_top2;u2_top3; u2_bot; u2_side];
+u1 = [u1_top1;u1_top3; u1_bot; u1_side;u1_top2];
+u2 = [u2_top1;u2_top3; u2_bot; u2_side;u2_top2];
 
 
 %computing the force 
