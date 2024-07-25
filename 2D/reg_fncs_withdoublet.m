@@ -24,13 +24,16 @@ switch blob_num
         S1=-ep^3./(2*pi*r2.*R.^3);
         S2=ep^3*(2*ep^2+5*r2)./(2*pi*r2.^2.*R.^5);
         Q=-15*ep^3./(2*pi*R.^7);
-    
     case 2
-        %a more commonly used blob by RC 
+        %a more commonly used blob by RC (for phi from RC Fluids 2021) 
         % Min error roughly when ep = 0.95*ds
+        % From Mathematica:
+        %   S1 = (d^2 + R^2)/(2 \[Pi] R^4)
+        %   S2 = -((2 d^2 + R^2)/(\[Pi] R^6))
         H1 = -log(R) +  ep^2./R./R;
         H2 = 1./R./R; 
-    
+        S1 = (ep^2 + R.^2)./(2*pi*R.^4);
+        S2 = -((2*ep^2 + R.^2)./(pi*R.^6));
     case 3
         % Mystery blob from RC on 7/23
         % Min error roughly when ep = 1.75*ds
