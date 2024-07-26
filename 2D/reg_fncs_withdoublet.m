@@ -32,8 +32,8 @@ switch blob_num
         %   S2 = -((2 d^2 + R^2)/(\[Pi] R^6))
         H1 = -log(R) +  ep^2./R./R;
         H2 = 1./R./R; 
-        S1 = (ep^2 + R.^2)./(2*pi*R.^4);
-        S2 = -((2*ep^2 + R.^2)./(pi*R.^6));
+        S1 = -(ep^2 + R.^2)./(2*pi*R.^4);
+        S2 = ((2*ep^2 + R.^2)./(pi*R.^6));
     case 3
         % Mystery blob from RC on 7/23
         % Min error roughly when ep = 1.75*ds
@@ -43,13 +43,12 @@ switch blob_num
     case 4
         % psi from Cortez Fluids 2021
         % psi = 2*ep^4*(r^4 - 10*ep^2*r^2 + 5*ep^4)/(Pi*(r^2 + ep^2)^5)
-        % From Mathematica:
-        %   H1 = (8 d^6 - 2 d^4 R^2 + d^2 R^4 - 3 R^6 Log[R])/(3 R^6)
-        %   H2 = (8 d^4 + 4 d^2 R^2 + 3 R^4)/(3 R^6)
-        %   S1 = (8 d^6 + d^2 R^4 + R^6)/(2 \[Pi] R^8)
-        %   S2 = -((32 d^6 + 2 d^2 R^4 + R^6)/(\[Pi] R^10))
-        H1 = (8*ep^6 - 2*ep^4*R.^2 + ep^2*R.^4 - 3*R.^6*log(R))./(3*R.^6);
-        H2 = (8*ep^4 + 4*ep^2*R.^2 + 3*R.^4)./(3*R.^6);
-        S1 = (8*ep^6 + ep^2*R.^4 + R.^6)./(2*pi*R.^8);
-        S2 = -((32*ep^6 + 2*ep^2*R.^4 + R.^6)./(pi*R.^10));
+        % Wondering if there is a sign error in S1-S2 given 2D channel
+        % results
+        r2 = R.^2 - ep^2;
+        S1 = (10*ep^6 + 5*ep^4*r2 + 4*ep^2*r2.^2 + r2.^3)./(2*pi*(ep^2 + r2).^4);
+        S2 = -(35*ep^6 + 7*ep^4*r2 + 5*ep^2*r2.^2 + r2.^3)./(pi*(ep^2 + r2).^5);
+        H1 = -(-11*ep^6 + 9*ep^4*r2 + 7*ep^2*r2.^2 + ...
+              3*r2.^3 + 3*(ep^2+r2).^3.*log(ep^2+r2))./(6*(ep^2+r2).^3);
+        H2 = (15*ep^4 + 10*ep^2*r2+3*r2.^2)./(3*(ep^2+r2).^3);
 end
