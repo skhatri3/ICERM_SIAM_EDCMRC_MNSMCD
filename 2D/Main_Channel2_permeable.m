@@ -17,10 +17,10 @@ mu = 1;
 N = 160;    
 
 %blob choice
-blob=1;
+blob=2;
 
 %permeability coefficient (assuming constant for the permeable region)
-b=-0.00024;
+b=-0.00011;
 
 %constant determining inflow velocity profile
 a=4;
@@ -38,9 +38,9 @@ perm_max=10/3;  %end of permeable part
 
 %discretization of channel
 ds = (ymax-ymin)/N;
-
+%%
 %regularization parameter
-ep = 1.75*ds;
+ep =0.0224;%1*ds;
 
 %discretization of top:
 s1=(xmin:ds:perm_min-ds)';
@@ -184,3 +184,23 @@ hold off
 % hold on;
 % quiver(y1,y2, f1, f2)
 % axis([xmin-0.5 xmax+0.5 ymin-0.5 ymax+0.5])
+
+
+%% Check flow rates 
+
+% inlet
+Rin=ds*sum(dot(normals_side, [u1_side u2_side]))
+
+%top
+normals_top_perm=zeros(length( y1_top_perm),2);
+normals_top_perm(:,2)=1;
+Rtop=ds*sum(dot(normals_top_perm, u_beta))
+
+%outlet
+x2_out= (ymin+ds:ds:ymax-ds)';
+x1_out= xmax*ones(size(x2_out));
+uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
+    [x1_out,x2_out],ep,mu, blob);
+Rout=-ds*sum(dot(normals_side, uu))
+
+Rin+Rtop+Rout

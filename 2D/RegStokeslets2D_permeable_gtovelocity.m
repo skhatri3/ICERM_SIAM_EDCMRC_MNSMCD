@@ -63,18 +63,18 @@ end
 R2 = XY1.^2 + XY2.^2 + ep^2; 
 R = sqrt( R2 ); 
 
-[H1, H2, S1, S2, Q] = reg_fncs_withdoublet(ep, R, blob_num); %MxN
+[H1, H2, S1, S2] = reg_fncs_withdoublet(ep, R, blob_num); %MxN
 
 
 %Doublet part
-S1(S1(:)==-Inf|S1(:)==Inf)=0;
-S2(S2(:)==-Inf|S2(:)==Inf)=0;
+% S1(S1(:)==-Inf|S1(:)==Inf)=0;
+% S2(S2(:)==-Inf|S2(:)==Inf)=0;
 NormXY=Norm1.*XY1+Norm2.*XY2;
 D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1);
 D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
 D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
 D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2);
-D=[D11 D12; D21 D22];
+D=[D11 D12; D21 D22]/mu;
 
 
 %Obtain velocities
