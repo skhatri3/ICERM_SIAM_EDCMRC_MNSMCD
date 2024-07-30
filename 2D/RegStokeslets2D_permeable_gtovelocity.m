@@ -20,6 +20,8 @@ function [u_beta] = RegStokeslets2D_permeable_gtovelocity(y,g,...
 %Beta gives the permeability coefficient for all source points., Nx1
     %beta(i) should be 0 if it is not a permeable section
 %n is Nx2, giving unit normals for source points
+%I2 is indicies of non-permeable parts of y1, but it has been taken out of
+%the code
 
 N = size(y,1); %number of source points 
 M = size(x,1); %number of target points 
@@ -32,9 +34,6 @@ g2 = g(:,2);
 x1 = x(:,1); 
 x2 = x(:,2); 
 
-%initializing the velocity 
-u1 = zeros(M,1);
-u2 = zeros(M,1);
 
 %Build Matrix
 Beta=zeros(M,N);
@@ -71,11 +70,16 @@ R = sqrt( R2 );
 % S2(S2(:)==-Inf|S2(:)==Inf)=0;
 NormXY=Norm1.*XY1+Norm2.*XY2;
 D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1);
-D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
-D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
-D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2);
-D=[D11 D12; D21 D22]/mu;
+% D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
+% D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
+D12=-Beta.*Norm2.*(S2.*NormXY.*XY1);
+D21=-Beta.*Norm1.*(S2.*NormXY.*XY2);
 
+D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2);
+D=[D11 D12; D21 D22]/(mu);
+% %zero out rows for targets not on permeable membrane
+% D(I2,:)=zeros(length(I2),length(D(1,:)));
+% D(I2+M,:)=zeros(length(I2), length(D(1,:)));
 
 %Obtain velocities
 gg=[g1; g2];

@@ -72,7 +72,7 @@ M22 = H1 + H2.*XY2.*XY2;
 M12 = H2.*XY1.*XY2; 
 %M21 = H2.*XY2.*XY1; 
 
-Mat = [M11 M12; M12 M22]/4/pi/mu;
+Mat = [M11 M12; M12 M22]/(mu);
 
 
 %Doublet part
@@ -80,12 +80,15 @@ Mat = [M11 M12; M12 M22]/4/pi/mu;
 % S2(S2(:)==-Inf|S2(:)==Inf)=0;
 NormXY=Norm1.*XY1+Norm2.*XY2;
 D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1);
-D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
-D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
+% D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
+D12=-Beta.*Norm2.*(S2.*NormXY.*XY1);
+% D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
+D21=-Beta.*Norm1.*(S2.*NormXY.*XY2);
 D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2);
-D=[D11 D12; D21 D22]/mu;
+D=[D11 D12; D21 D22]/(mu);
 %zero out rows that are for target points on permeable membrane
 D(I,:)=zeros(length(I),length(D(1,:)));
+D(I+M,:)=zeros(length(I), length(D(1,:)));
 
 %solving for force when given a velocity 
 uu = [u1;u2];
