@@ -17,7 +17,7 @@ mu = 1;
 N = 160;    
 
 %blob choice
-blob=2;
+blob=4;
 
 %permeability coefficient (assuming constant for the permeable region)
 b=-0.00011;
