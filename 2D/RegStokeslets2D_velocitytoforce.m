@@ -1,4 +1,4 @@
-function [f] = RegStokeslets2D_velocitytoforce(y,x,u,ep,mu,blob_num)
+function [f] = RegStokeslets2D_velocitytoforce(y,x,u,ep,mu,blob_num, ds)
 
 % Computes forces at set of points when given a set of points and
 % velocities at those points using the Method of Regularized Stokeslets 
@@ -44,18 +44,18 @@ end
 R2 = XY1.^2 + XY2.^2 + ep^2; 
 R = sqrt( R2 ); 
 
-[H1, H2] = reg_fncs(ep, R, blob_num); 
+[H1, H2, ~, ~] = reg_fncs_withdoublet(ep, R, blob_num); 
 
 M11 = H1 + H2.*XY1.*XY1; 
 M22 = H1 + H2.*XY2.*XY2; 
 M12 = H2.*XY1.*XY2; 
 %M21 = H2.*XY2.*XY1; 
 
-M = [M11 M12; M12 M22]/4/pi/mu;
+Mat = [M11 M12; M12 M22]/mu;
 
 %solving for force when given a velocity 
 uu = [u1;u2];
-ff = M\uu; 
+ff = Mat\uu; 
 f1 = ff(1:N); 
 f2 = ff(N+1:end); 
 
