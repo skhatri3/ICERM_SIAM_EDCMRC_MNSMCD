@@ -17,10 +17,10 @@ mu = 1;
 N = 160;    
 
 %blob choice
-blob=4;
+blob=2;
 
 %permeability coefficient (assuming constant for the permeable region)
-b=-0.00024;
+b=-0.00011;
 
 %constant determining inflow velocity profile
 a=4;
@@ -40,7 +40,7 @@ perm_max=10/3;  %end of permeable part
 ds = (ymax-ymin)/N;
 %%
 %regularization parameter
-ep =0.0224;%1*ds;
+ep =0.05/sqrt(5)/sqrt(5);%1*ds;
 
 %discretization of top and bottom:
 s = ds/2:ds:xmax-ds/2;
@@ -106,7 +106,7 @@ g=RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
 %Find velocity in permeable region:
 y1b=y1(I);
 y2b=y2(I);
-[u_beta]=RegStokeslets2D_permeable_gtovelocity([y1,y2],g, [y1b,y2b],...
+[u_beta]=RegStokeslets2D_gtovelocity([y1,y2],g, [y1b,y2b],...
     ep,mu, blob, beta, normals);
 % 
 % u1=u1+u_beta(:,1);
