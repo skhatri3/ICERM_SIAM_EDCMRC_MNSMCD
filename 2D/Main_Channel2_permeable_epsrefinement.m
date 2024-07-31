@@ -14,7 +14,7 @@ clear all
 mu = 1; 
 Nvals=15*2.^(0:4);
 %number of points on boundary where velocity is set and force is computed 
-epsvals = 0.5:0.5:5;    
+epsvals = 2.^(-9:0);    
 
 %blob choice
 blob=4;
@@ -45,9 +45,10 @@ for i=1:length(epsvals)
 
 %discretization of channel
 ds = (ymax-ymin)/N;
+ds_s(i)=ds;
 %%
 %regularization parameter
-ep =epsvals(i)*ds; %0.2833*ds^(1/2); %;0.0224;%1*ds;
+ep =epsvals(i);%*ds; %0.2833*ds^(1/2); %;0.0224;%1*ds;
 
 %discretization of top and bottom:
 s = ds/2:ds:xmax-ds/2;
@@ -113,7 +114,7 @@ g=RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
 %Find velocity in permeable region:
 y1b=y1(I);
 y2b=y2(I);
-[u_beta]=RegStokeslets2D_permeable_gtovelocity([y1,y2],g, [y1b,y2b],...
+[u_beta]=RegStokeslets2D_gtovelocity([y1,y2],g, [y1b,y2b],...
     ep,mu, blob, beta, normals);
 % 
 % u1=u1+u_beta(:,1);
@@ -219,8 +220,8 @@ hold on
 % axis([20 550 5*10^(-7) 10^(-1) ]);
 set(gca, 'FontSize', 17);
 legend('$N=15$', '$N=30$', '$N=60$', '$N=120$','$N=240$','Interpreter','latex', 'FontSize', 20);
-xlabel('$c$', 'FontSize', 18,'Interpreter','latex')
+xlabel('$\epsilon$', 'FontSize', 18,'Interpreter','latex')
 ylabel('Error', 'FontSize', 17)
-title('Total Flow Rate Refinement Study, $\epsilon=c*ds$',...
+title('Total Flow Refinement Study',...
     'FontSize', 18,'Interpreter','latex')  
 % yticks([10^(-5) 10^(-3) 10^(0)])
