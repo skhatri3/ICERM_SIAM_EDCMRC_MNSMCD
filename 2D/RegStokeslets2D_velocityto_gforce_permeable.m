@@ -81,6 +81,7 @@ Mat = [M11 M12; M12 M22]/(mu);
 NormXY=Norm1.*XY1+Norm2.*XY2;
 D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1);
 % D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
+% 
 D12=-Beta.*Norm2.*(S2.*NormXY.*XY1);
 % D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
 D21=-Beta.*Norm1.*(S2.*NormXY.*XY2);
