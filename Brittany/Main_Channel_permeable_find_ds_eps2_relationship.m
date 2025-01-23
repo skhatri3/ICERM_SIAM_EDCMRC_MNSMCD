@@ -19,19 +19,14 @@ clear all
 %setting the viscosity
 mu = 1; 
 Nvals=10*2.^(0:5);
+Nvals=[10 20 40 80 160 320];
 % Nvals=[10 20 40 80 160 320];
 %number of points on boundary where velocity is set and force is computed 
 
-%constant ep1=c1 ds
-c1vals = 2.^(-9:0);%0.1:0.1:1; %;%%0.1:0.1:2;  
-c1vals=0.001:0.001:0.5;
-c1vals=logspace(-3,0,12);
-% c2vals = 0.1:0.1:2; 
- % c2vals = 2.^(-9:2);
+epsvals=0.00001*2.^(0:16);
+
 %blob choice
 blob=2 ;
-
-
 
 %constant determining inflow velocity profile
 a=4;
@@ -47,14 +42,14 @@ ymax = ymin + Ly;
 perm_min=5/3;  %start of permeable part
 perm_max=10/3;  %end of permeable part
 
-usolutions=cell(length(Nvals), length(c1vals)); %for storing u solutions to compare
-vsolutions=cell(length(Nvals), length(c1vals));
+usolutions=cell(length(Nvals), length(epsvals)); %for storing u solutions to compare
+vsolutions=cell(length(Nvals), length(epsvals));
 %%
 for j=1:length(Nvals)
     N=Nvals(j);
 
 
-for i=1:length(c1vals)
+for i=1:length(epsvals)
    
 
 %discretization of channel
@@ -63,9 +58,8 @@ ds = (ymax-ymin)/N;
 %%
 %regularization parameter
 % ep1=0.0002;
-ep1 =0.0002; %0.05/sqrt(5)*160*ds;%0.0002; %^(1/4); %0.2833*ds^(1/2); %;0.0224;%1*ds;
-ep2=c1vals(i)*ds^(1/2);
-% ep2=c1vals(i)*ds^(1);
+ep1 =1.6645*ds;
+ep2=epsvals(i);
 
 %permeability coefficient (assuming constant for the permeable region)
 b=0.00018*sqrt(5)/0.05*ep2;%0.00018; %0.9*ep2; %
@@ -155,30 +149,22 @@ Ufull=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[y1f,y2f],ep1,mu, blob, ds
 ufull=Ufull(:,1); vfull=Ufull(:,2);
 
 %calculate on grid
-[xgg,ygg] = meshgrid(ds:4*ds:Lx-ds, ds:4*ds:Ly-ds); xg=xgg(:); yg=ygg(:);
-Ugrid=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[xg,yg],ep1,mu, blob, ds);
-ug=reshape(Ugrid(:,1), length(ds:4*ds:Ly-ds), length(ds:4*ds:Lx-ds)); 
-vg=reshape(Ugrid(:,2), length(ds:4*ds:Ly-ds), length(ds:4*ds:Lx-ds)); 
+dx=(ymax-ymin)/160;
+% dx=ds;
+% dxs(i)=dx;
+Nx=round(xmax/dx);
+Ny=round(ymax/dx);
+xg=dx*(0:Nx-1)+xmin;
+yg=dx*(0:Ny-1)+ymin;
+[xg,yg]=ndgrid(xg,yg);
+xgv=reshape(xg, Nx*Ny,1);
+ygv=reshape(yg, Nx*Ny,1);
+Ugrid=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[xgv,ygv],ep1,mu, blob, ds);
+ug=reshape(Ugrid(:,1), Nx, Ny); 
+vg=reshape(Ugrid(:,2), Nx, Ny); 
 speed=sqrt(ug.^2+vg.^2);
-% %% Plot figure
-% sk=2;
-% figure;%subplot(211)
-% plot(y1f,y2f,'k.'),hold on
-% % quiver(xgg,ygg,ug,vg,0.8,'r','LineWidth',1)
-% quiver(y1f(1:6*sk:end),y2f(1:6*sk:end),ufull(1:6*sk:end),vfull(1:6*sk:end),0,'k','LineWidth',2)
-% % quiver(xe(1:8:end),ye(1:8:end),usuck(1:8:end),vsuck(1:8:end),0,'r')
-% surf(xgg,ygg,-speed),view(2),shading interp
-% hh1=streamline(xgg,ygg,ug ,vg ,xgg(1:end,1 ),ygg( 1:end,1 ));
-% hh2=streamline(xgg,ygg,ug ,vg ,xgg(1:end,end ),ygg( 1:end,end ));
-% set(hh1,'Color','black');hold off,axis equal,
-% set(hh2,'Color','black');hold off,axis equal,axis([-0.10 5.5 -0.55 1.75  ])
-% title(['\beta = ',num2str(b)])
-% % clim([0 1]);
-% colorbar('Ticks',[-1 , -0.8, -0.6,-0.4,-0.2,0 ],...
-%     'TickLabels',{'1','0.8','0.6','0.4','0.2','0'},...
-%     'Direction','reverse')
-% hold off  
-% set(gca, 'FontSize', 16)
+usolutions{j,i}=ug;
+vsolutions{j,i}=vg;
 
 
 
@@ -199,7 +185,7 @@ uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
     [x1_out,x2_out],ep1,mu, blob);
 Rout=-ds*sum(dot(normals_side, uu));
 
-error(j,i)=Rin+Rtop+Rout
+error(j,i)=abs(Rin+Rtop+Rout)
 
 end
 
@@ -223,7 +209,7 @@ figure;
    %Refinement study plots
    
   
-   loglog(c1vals, abs(error(j,:)),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+   loglog(epsvals, abs(error(j,:)),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
        10)
 hold on
 % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
@@ -248,3 +234,86 @@ ylabel('Error', 'FontSize', 17)
 title('Total Flow Refinement Study',...
     'FontSize', 18,'Interpreter','latex')  
 % yticks([10^(-5) 10^(-3) 10^(0)])
+
+
+%%
+d1u=zeros(length(Nvals), length(epsvals));
+d2u=zeros(length(Nvals), length(epsvals));
+dmaxu=zeros(length(Nvals), length(epsvals));
+
+d1v=zeros(length(Nvals), length(epsvals));
+d2v=zeros(length(Nvals), length(epsvals));
+dmaxv=zeros(length(Nvals), length(epsvals));
+
+for i=1:length(epsvals)
+
+for j=1:length(Nvals)-1
+    %from fine to coarse 
+    ufine=usolutions{j+1,i}; 
+    ucoarse=usolutions{j,i};
+    diffu=(ucoarse-ufine);
+    % ufinerest=ufine(1:2:end, 1:2:end);
+    % diffu=(ucoarse-ufinerest);
+
+
+    vfine=vsolutions{j+1,i}; 
+    vcoarse=vsolutions{j,i};
+    diffv=(vcoarse-vfine);
+    % vfinerest=vfine(1:2:end, 1:2:end);
+    % diffv=(vcoarse-vfinerest);
+    % dx=dxs(i);
+
+    d1u(j, i)= dx^2*sum(sum(abs(diffu)));
+    d2u(j, i)= sqrt(dx^2*sum(sum(diffu(:,:).^2)));
+    dmaxu(j, i)= max(max(abs(diffu)));
+
+    d1v(j, i)= dx^2*sum(sum(abs(diffv)));
+    d2v(j, i)= sqrt(dx^2*sum(sum(diffv(:,:).^2)));
+    dmaxv(j, i)= max(max(abs(diffv)));
+
+end
+end
+%%
+
+%% Allnorms refinement study
+   
+colorp=[0.4940, 0.1840, 0.5560];
+colorlb=[0.3010, 0.6450, 0.9930];
+colorg=[0.4660, 0.6740, 0.1880];
+colordb=	[0, 0.4470, 0.7410];
+
+forploty0=1.5;
+forplotdx0=10;
+dxforplot=1./Nvals;
+yforplot=forploty0/forplotdx0^1*dxforplot.^1;
+forploty02=50;
+forplotdx02=10;
+dxforplot2=1./Nvals;
+yforplot2=forploty02/forplotdx02^2*dxforplot2.^2;
+   for i=1:length(epsvals)
+%Refinement study plots
+figure;
+loglog(Nvals, dmaxu(:,i),'o-', 'LineWidth', 3, 'MarkerSize', ...
+       10, 'Color', colorlb)
+hold on
+% loglog(Nvals, d2u, 's-', 'LineWidth', 3,'MarkerSize', 10, 'Color', colordb);
+% loglog(Nvals, d1u, 'd-', 'LineWidth', 3,'MarkerSize', 10,'Color', colorp);
+   end
+   loglog(Nvals(3:5), yforplot(3:5), 'LineWidth', 2,'Color', colorg)
+text(360,1/7000,'1/N', 'Color', colorg, 'FontSize', 16);
+% loglog(Nvals(3:5), yforplot2(3:5), 'LineWidth', 1.5,'Color', colorg)
+% text(100,1.4/100000,'1/N^2', 'Color', colorg, 'FontSize', 12);
+hold off
+%legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
+legend('L^{\infty}', 'L^2', 'L^1');
+% axis([10 360 10^(-4) 10^(0)]);
+set(gca, 'FontSize', 12);
+xlabel('N_x', 'FontSize', 18)
+ylabel('Difference Norms', 'FontSize', 18)
+title('Horizontal Error Refinement Study',...
+    'FontSize', 18,'Interpreter','latex')
+   
+
+
+
+

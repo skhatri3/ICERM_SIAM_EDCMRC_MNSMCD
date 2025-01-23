@@ -1,15 +1,12 @@
-%Example 4 of Cortez, Fluids 2021
+
+%Example 3 of Cortez, Fluids 2021
 %Channel with inflow and part of membrane permeable
 
 %Developed by Ricardo Cortez, Brittany Leathers, and Michaela Kubacki
 %July 2024
 
-%Refinement studies as refine discretization of channel,
-%letting Beta=A eps and eps=C ds^(1/p)
-%Refinement study on net flow out 
-%Refinement study on L1,2,inf norms of sequential differences in velocity
-%   solutions calculated on a grid (grid constant, not refined) in the channel
-
+%Find best C1 for eps=Cds^(1/p) for different values of p
+%And for different Flow Regimes
 
 clear all 
 % close all
@@ -18,9 +15,10 @@ clear all
 
 %setting the viscosity
 mu = 1; 
-
+% Nvals=10*2.^(0:5);
+Nvals=[10 20 40 80 160 320];
 %number of points on boundary where velocity is set and force is computed 
-Nvals=[10,20,40,80,160,320, 360, 400];
+
 
 %blob choice
 blob=2;
@@ -28,11 +26,6 @@ blob=2;
 %constant determining inflow velocity profile
 a=4;
 
-  
-
-%Degree to for convergence (eps=C ds^(1/p))
-pvals=[1; 2; 3; 4];
- 
 %channel
 Lx = 5;
 Ly = 1;
@@ -44,11 +37,6 @@ perm_min=5/3;  %start of permeable part
 perm_max=10/3;  %end of permeable part
 
 
-usolutions=cell(1,length(Nvals)); %for storing u solutions to compare
-vsolutions=cell(1,length(Nvals));
-
-for iii=1:4
-    p=pvals(iii)
 
 %%
 for i=1:length(Nvals)
@@ -56,14 +44,8 @@ for i=1:length(Nvals)
 
 %discretization of channel
 ds = (ymax-ymin)/N;
-ds_s(i)=ds;
-%%
-%regularization parameter
-C=0.05/sqrt(5)*160^(1/p);
-ep =C*ds^(1/p); 
-
-%permeability coefficient (assuming constant for the permeable region)
-b=0.00018*sqrt(5)/0.05*ep;
+ep=1.6645*ds;
+   
 
 %discretization of top and bottom:
 s = ds/2:ds:xmax-ds/2;
@@ -100,9 +82,7 @@ I=find(y1_top<2/3*Lx & y1_top>1/3*Lx);
 I2=find(y1_top>=2/3*Lx | y1_top<=1/3*Lx);
 %unit normals
 normals=[normals_top; normals_bot; normals_side];
-%beta vector for function;
-beta= zeros(length(y1),1); 
-beta(I)=b;
+
 
 
 
@@ -121,25 +101,6 @@ u1 = [u1_top; u1_bot; u1_side];
 u2 = [u2_top; u2_bot; u2_side];
 
 
-%
-%compute g
-g=RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
-    [u1,u2],ep,mu, blob, I, beta, normals);
-
-%Find velocity in permeable region:
-y1b=y1(I);
-y2b=y2(I);
-[u_beta]=RegStokeslets2D_gtovelocity([y1,y2],g, [y1b,y2b],...
-    ep,mu, blob, beta, normals);
-% 
-% u1=u1+u_beta(:,1);
-% u2=u2+u_beta(:,2);
-
-%Put in the new velocities for the permeable part
-%permeable part : temporary velocity for finding g
-u1(I)=u_beta(:,1);
-u2(I)=u_beta(:,2);
-
 %computing the force 
 f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep,mu, blob);
 f1 = f(:,1);
@@ -148,6 +109,7 @@ f2 = f(:,2);
 % Calculate velocities on right hand side too
 Ufull=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[y1f,y2f],ep,mu, blob, ds);
 ufull=Ufull(:,1); vfull=Ufull(:,2);
+
 
 %calculate on grid
 dx=(ymax-ymin)/160;
@@ -167,28 +129,9 @@ speed=sqrt(ug.^2+vg.^2);
 usolutions{i}=ug;
 vsolutions{i}=vg;
 
-% xgo=xg';
-% ygo=yg';
-% % %% Plot figure
-% sk=2;
-% figure;%subplot(211)
-% plot(y1f,y2f,'k.'),hold on
-% % quiver(xgg,ygg,ug,vg,0.8,'r','LineWidth',1)
-% quiver(y1f(1:6*sk:end),y2f(1:6*sk:end),ufull(1:6*sk:end),vfull(1:6*sk:end),0,'k','LineWidth',2)
-% % quiver(xe(1:8:end),ye(1:8:end),usuck(1:8:end),vsuck(1:8:end),0,'r')
-% surf(xg,yg,-speed),view(2),shading interp
-% hh1=streamline(xg',yg',ug' ,vg' ,xgo(1:3*sk:end,1 ),ygo( 1:3*sk:end,1 ));
-% hh2=streamline(xg',yg',ug' ,vg' ,xgo(1:3*sk:end,end ),ygo( 1:3*sk:end,end ));
-% set(hh1,'Color','black');hold off,axis equal,
-% set(hh2,'Color','black');hold off,axis equal,axis([-0.10 5.5 -0.55 1.75  ])
-% title(['\beta = ',num2str(b)])
-% % clim([0 1]);
-% colorbar('Ticks',[-1 , -0.8, -0.6,-0.4,-0.2,0 ],...
-%     'TickLabels',{'1','0.8','0.6','0.4','0.2','0'},...
-%     'Direction','reverse')
-% hold off  
-% set(gca, 'FontSize', 16)
-
+% Calculate velocities on right hand side too
+Ufull=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[y1f,y2f],ep,mu, blob, ds);
+ufull=Ufull(:,1); vfull=Ufull(:,2);
 
 % Check flow rates 
 % inlet
@@ -207,6 +150,7 @@ uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
 Rout=-ds*sum(dot(normals_side, uu));
 
 error(i)=Rin+Rtop+Rout;
+
 
 end
 %%
@@ -347,4 +291,3 @@ title('Vertical Error Refinement Study',...
     'FontSize', 18,'Interpreter','latex')
 
 
-end
