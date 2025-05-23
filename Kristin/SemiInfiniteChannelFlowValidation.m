@@ -38,10 +38,8 @@ h = contourf(xx, yy, pexact, 12, 'EdgeColor', 'none');
 hold on
 
 stream_in = streamline(xx, yy, uexact, vexact, xx(1:end, 1), yy(1:end, 1));
-stream_out = streamline(xx, yy, -uexact, -vexact, xx(1:end, end), yy(1:end, end));
 
 set(stream_in, 'Color', 'black');
-set(stream_out, 'Color', 'black');
 axis equal;
 ax = gca;
 ax.FontSize = 14;
