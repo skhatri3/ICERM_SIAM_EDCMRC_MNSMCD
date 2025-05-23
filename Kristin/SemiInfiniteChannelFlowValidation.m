@@ -1,4 +1,4 @@
-% Plots exact solution for infinite channel flow with permeable boundaries
+% Plots exact solution for semi-infinite channel flow with permeable boundaries
 % from Bernardi, F., Chellam, S., Cogan, N. G., & Moore, M. N. J. (2023).
 % Stokes flow solutions in infinite and semi‐infinite porous channels.
 % Studies in Applied Mathematics, 151(1), 116-140.
@@ -22,7 +22,7 @@ y = (ym+hH/2 : hH : yM-hH/2)';  NH = length(y)-1;
 % Darcy number 
 Da = 0.3; %Da<1/2 has finitely many real eigvals
 
-[uexact, vexact, pexact] = permeablechannelexact_inf(xx, yy, Da);
+[uexact, vexact, pexact] = permeablechannelexact_semiinf(xx, yy, Da, L/yM);
 
 % Quiver plot
 figure
@@ -55,20 +55,22 @@ colormap bone
 % values as FB.
 
 %%
-function [usol, vsol, psol] = permeablechannelexact_inf(x, y, Da)
+function [usol, vsol, psol] = permeablechannelexact_semiinf(x, y, Da, L_r)
 
 % solve eq (30) in FB
 f=@(lam) tan(lam)^2 - tan(lam)/lam + 1 - 2*Da;
 lam1 = fzero(f, sqrt(2*Da));
 
+% coefficient from eq (66) of FB
+C1 = (-2*L_r)*lam1/sin(lam1);
+
 % set up g_1(y) and derivative, eq (40) in FB
 g = cot(lam1)*(Da - 0.5)*sin(lam1*y) + 0.5*y.*cos(lam1*y);
 g_prime = cot(lam1)*(Da - 0.5)*lam1*cos(lam1*y) + 0.5*cos(lam1*y) - 0.5*lam1*y.*sin(lam1*y);
 
-% exact solution from eq (49)-(51) in FB
-C = -1; % arbitrary constant in solution
-psol = C*sinh(lam1*x).*cos(lam1*y);
-usol = -(C/lam1)*cosh(lam1*x).*g_prime;
-vsol = C*sinh(lam1*x).*g;
+% ground-state approximate solution from eq (64)-(68), (74)-(75) in FB
+psol = C1*exp(lam1*(x - L_r)).*cos(lam1*y);
+usol = C1*(-exp(lam1*(x - L_r))).*g_prime/lam1;
+vsol = C1*exp(lam1*(x - L_r)).*g;
 
 end
