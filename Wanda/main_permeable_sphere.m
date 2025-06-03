@@ -30,7 +30,17 @@ load md019.00400
 %load md029.00900
 %load md28.0841
 
+movie_flag = 0;
+
+if(movie_flag)
+    vidObj = VideoWriter('sphere_movie900pts.mp4','MPEG-4');
+    open(vidObj);
+end
+
+% Update this
 pts = md019(:,1:3);
+wts = md019(:,4);
+
 X = pts(:,1);
 Y = pts(:,2);
 Z = pts(:,3);
@@ -54,6 +64,9 @@ pointArea = zeros(ptN,1);
 
 
 dA = mean(triArea);
+dA = mean(wts);  % Update here!
+dA0 = dA;
+pointArea = wts;
 
 % write function to compute the curvature and normal vectors
 % Blob size: square root of the mean area for the blob size.
@@ -81,7 +94,8 @@ y1 = X;
 y2 = Y;
 y3 = Z;
 
-beta = 4/3*ep*alpha*ones(N,1);
+beta = 4/3*ep*alpha*ones(N,1); % change here! (0.83)
+% beta = 1/2*ep*alpha*ones(N,1); % change here!
 % b(s)= kappa times beta
 % b(s) = beta (f dot n)
 %kappa = sqrt(forces(:,1).^2+forces(:,2).^2+forces(:,3).^2);
@@ -99,7 +113,7 @@ R0 = 1;
 dt = 1e-3;
 tfinal_theory = R0^2*mu/(4*alpha); % 2.5, the last time that the solution is valid
 
-tfinal = tfinal_theory/2;
+tfinal = tfinal_theory;
 out_every = 50;
 nt = round(tfinal/dt);
 saveNo = floor(nt/out_every)+1;
@@ -121,6 +135,8 @@ phi = acos(Z./rho);
 % scatter3(rho.*sin(phi).*cos(theta),rho.*sin(phi).*sin(theta),rho.*cos(phi));
 
 exact_normals = [cos(theta).*sin(phi),sin(theta).*sin(phi),cos(phi)];
+% figure;
+% quiver3(X,Y,Z,exact_normals(:,1),exact_normals(:,2),exact_normals(:,3))
 
 
 Rtime = zeros(saveNo,1);
@@ -140,14 +156,20 @@ for j=1:nt % was nt
 
     % Compute the area of each triangle
     [triArea, pointArea] = computeTriangleAreas(Xt,T);
-    dA = mean(triArea);
+    dA = R^2*dA0;     % Update here!
+    pointArea = R^2*wts;  % Update here!
+    %dA = mean(triArea);
 
     % Compute forces numerically
-    [forces, normalVecs] = computeSphereForces(Xt,T,triArea);
+    % [forces, normalVecs] = computeSphereForces(Xt,T,triArea);
     %forces = (2/R)*normalVecs; % override the forces
     %forces2 = forces.*pointArea;
-    
-    %forces = -(2/R)*exact_normals; % checking with the exact normals.
+
+    % figure(2)
+    % quiver3(X,Y,Z,forces(:,1),forces(:,2),forces(:,3))
+    % axis equal
+
+    forces = (2/R)*exact_normals; % checking with the exact normals.
 
     % source points y
     % target points x
@@ -166,7 +188,18 @@ for j=1:nt % was nt
     exact_u = (alpha/mu)*2/R;
     comp_u = mean(mag_u_beta);
 
-     % b = beta.*forces; 
+    % figure(2)
+    % quiver3(X,Y,Z,u_beta(:,1),u_beta(:,2),u_beta(:,3))
+    % axis equal
+
+    % Cheating section!!
+    % Use the normal component of u_beta to update the points
+    ubdotn = dot(u_beta,normalVecs,2); % normal component of the velocity
+    u_mean = mean(ubdotn); % average of the normal component
+    u_beta = u_mean.*normalVecs; %(u_beta.normals)*normals 
+    %u_beta = ubdotn.*normalVecs;
+
+    % b = beta.*forces; 
     % b(s) = beta (f dot n) = beta 2 kappa
     %mag_normals = sqrt(normalVecs(:,1).^2+normalVecs(:,2).^2+normalVecs(:,3).^2);
 
@@ -185,12 +218,13 @@ for j=1:nt % was nt
     Y = y2;
     Z = y3;
 
-
+    % dynamically update epsilon for accuracy
     R = 1/ptN*sum(sqrt(X.^2 + Y.^2+Z.^2));
-    %ep =sqrt(dA);
-    %ep = 0.1*R; % dynamically update epsilon for accuracy
+    
+    ep = 1.5*sqrt(dA);
+    beta = 4/3*ep*alpha*ones(N,1);
 
-    if(isnan(R) | R< 1e-10)
+    if(isnan(R) | R< 1e-6 |R> 1.1)
         fprintf('Stop early\n');
         break;
     end
@@ -208,7 +242,16 @@ for j=1:nt % was nt
         % scatter3(X,Y,Z)
         axis equal
         scatter3(y1,y2,y3,'filled')
+        title(sprintf('Time = %4.2f s',time),'fontweight','normal');
+        set(gca,'fontsize',16);
+        set(gcf,'color','w');
+        set(gca,'fontname','Times New Roman'); box on;
         hold off
+
+        if(movie_flag)
+            currFrame = getframe(gcf);
+            writeVideo(vidObj,currFrame);
+        end
         %figure(1)
           %  histogram(mag_u_beta);
 
@@ -223,6 +266,10 @@ for j=1:nt % was nt
     Xt = [X Y Z];
 end
 
+if(movie_flag)
+    close(vidObj);
+end
+
 figure;
 plot(timeArray,Rexact,'k-');
 hold on
@@ -234,4 +281,6 @@ set(gca,'fontname','Times New Roman'); box on;
 hold off;
 legend('Exact solution','Computed');
 title([num2str(ptN) ' Points']);
+xlabel('Time');
+ylabel('Radius');
 
