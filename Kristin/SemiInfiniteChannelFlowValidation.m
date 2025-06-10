@@ -6,7 +6,7 @@
 %Geometry
 Ninlet = 30; % points per inlet unit length
 
-xm = -pi;  xM = pi; % range in x
+xm = 0;  xM = pi; % range in x
 ym = -1;  yM = 1;  % range in y
 
 L = xM-xm;  H = yM-ym; % lengths of x and y domain
@@ -26,7 +26,7 @@ Da = 0.3; %Da<1/2 has finitely many real eigvals
 
 % Quiver plot
 figure
-quiver(xx, yy, uexact, vexact, 2.5)
+quiver(xx(1:3:end, 1:3:end), yy(1:3:end, 1:3:end), uexact(1:3:end, 1:3:end), vexact(1:3:end, 1:3:end), 2.5)
 axis equal;
 ax = gca;
 ax.FontSize = 14;
@@ -34,7 +34,6 @@ ax.FontSize = 14;
 % Plotting streamlines with pressure contour
 figure
 h = contourf(xx, yy, pexact, 12, 'EdgeColor', 'none');
-%set(h, 'EdgeColor', 'none');
 hold on
 
 stream_in = streamline(xx, yy, uexact, vexact, xx(1:end, 1), yy(1:end, 1));
