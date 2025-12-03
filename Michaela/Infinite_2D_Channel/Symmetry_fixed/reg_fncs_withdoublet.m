@@ -4,13 +4,12 @@ function [H1, H2, S1, S2, Q] = reg_fncs_withdoublet(ep, R, blob_num)
 % for the Method of Regularized Stokeslets in 2D 
 % Based on Cortez, SIAM J. Sci Comput. 2001
 
-% Developed by Shilpa Khatri and Ricardo Cortez 
-% July 2024 
+% Developed by Michaela Kubacki July 2024.
 
-%ep: blob width (regularization parameter)
-%R: distance between targe and source point + regularization 
-%   (R = sqrt(|x-y|^2 + ep^2))
-%blob_num specifies blob type
+%       ep: blob width (regularization parameter)
+%       R: distance between targe and source point + regularization 
+%           (R = sqrt(|x-y|^2 + ep^2))
+%       blob_num specifies blob type
 
 switch blob_num
     case 1
@@ -23,7 +22,7 @@ switch blob_num
         S2 = -(2*ep^2 + R.^2)./(pi*R.^6);
         Q = - (12*ep^4)./(pi*R.^8);
     case 2
-        % psi from Cortez Fluids 2021
+        % psi from 2021 paper
         % psi = 2*ep^4*(r^4 - 10*ep^2*r^2 + 5*ep^4)/(Pi*(r^2 + ep^2)^5)  
         d2=ep^2;
         r2 = R.^2 - ep^2;

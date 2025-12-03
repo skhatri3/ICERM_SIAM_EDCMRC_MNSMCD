@@ -7,7 +7,7 @@
 
 % Recent Updates:  
 %   - 12/2: updated all function files to consistently rescale the 
-%     Stokeslet and source double matrices
+%     Stokeslet and source double matrices by pi
 %   - 12/3: updated this file and all function files to incorporate quad.
 %     weight vector, wt, so that we have symmetry.  Originally we were
 %     using same discretization width on sides and top/bottom, which meant
@@ -157,13 +157,38 @@ ug2 = ug(:,2);
 u1m = reshape(ug1,size(xx1,2),size(xx2,2)); %x-coords of computed velocities
 u2m = reshape(ug2,size(xx1,2),size(xx2,2)); %y-coords of computed velocities
 
+% get exact solution everywhere
+[x1gg, x2gg] = meshgrid(xx1, xx2);
+[uexact,vexact,~] = permeablechannelexact(x1gg,x2gg,Da);
+
+% Errors
+u_error = uexact - u1m';
+v_error = vexact - u2m';
+
+% Plot errors in each velocity component
+figure
+subplot(2,1,1);
+surf(xx1, xx2, u_error, 'EdgeColor', 'none');
+colorbar;
+title('Error in u (horizontal) velocity -- Stokeslets Only');
+xlabel('x');
+ylabel('y');
+axis tight;
+view(2); % View from above for 2D representation
+
+subplot(2,1,2);
+surf(xx1, xx2, v_error, 'EdgeColor', 'none');
+colorbar;
+title('Error in v (vertical) velocity -- Stokeslets Only');
+xlabel('x');
+ylabel('y');
+axis tight;
+view(2); % View from above for 2D representation
+
 % Plot streamlines comparing exact vs computed velocities using Stokeslets
 figure
 plot(y1, y2, 'k.')
 hold on
-% get exact solution everywhere
-[x1gg, x2gg] = meshgrid(xx1, xx2);
-[uexact,vexact,~] = permeablechannelexact(x1gg,x2gg,Da);
 
 % Computed streamlines
 hh1_comp = streamline(x1gg, x2gg, u1m', u2m', x1gg(1:end, 1), x2gg(1:end, 1)); % streamlines starting at left wall
@@ -278,13 +303,34 @@ umag = sqrt(u1m.^2 + u2m.^2);
 [u1_exact,u2_exact,p_exact] = permeablechannelexact(x1m,x2m,Da);
 umag_exact = sqrt(u1_exact.^2 + u2_exact.^2);
 
+% Errors
+u_error = uexact - u1m';
+v_error = vexact - u2m';
+
+% Plot errors in each velocity component
+figure
+subplot(2,1,1);
+surf(xx1, xx2, u_error, 'EdgeColor', 'none');
+colorbar;
+title('Error in u (horizontal) velocity -- Permeable');
+xlabel('x');
+ylabel('y');
+axis tight;
+view(2); % View from above for 2D representation
+
+subplot(2,1,2);
+surf(xx1, xx2, v_error, 'EdgeColor', 'none');
+colorbar;
+title('Error in v (vertical) velocity -- Permeable');
+xlabel('x');
+ylabel('y');
+axis tight;
+view(2); % View from above for 2D representation
+
 % Plot streamlines
 figure
 plot(y1, y2, 'k.')
 hold on
-% get exact solution everywhere
-[x1gg, x2gg] = meshgrid(xx1, xx2);
-[uexact,vexact,~] = permeablechannelexact(x1gg,x2gg,Da);
 
 % Computed streamlines
 hh1_comp = streamline(x1gg, x2gg, u1m', u2m', x1gg(1:end, 1), x2gg(1:end, 1)); % streamlines starting at left wall

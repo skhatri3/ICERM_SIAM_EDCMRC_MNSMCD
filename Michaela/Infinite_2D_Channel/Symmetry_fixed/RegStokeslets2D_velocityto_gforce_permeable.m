@@ -11,8 +11,7 @@ function [g] = RegStokeslets2D_velocityto_gforce_permeable(y,...
 
 % This function requires access to function reg_funcs_withdoublet.m
 
-% Modified December 2025 to incorporate a quad weight vector and enforce
-% consistent scaling.
+% Modified December 2025 to incorporate a quad weight vector.
 
 % Inputs:
 %       y = (y1,y2) source points 
@@ -79,7 +78,7 @@ M22 = (H1 + H2.*XY2.*XY2).*wt;
 M12 = (H2.*XY1.*XY2).*wt; % Note that M21 = M12
 
 % Assemble Stokeslet matrix and rescale
-Mat = [M11 M12; M12 M22]/(8*pi*mu); 
+Mat = [M11 M12; M12 M22]/(mu); 
 
 % Doublet Matrix
 NormXY = Norm1.*XY1 + Norm2.*XY2;
@@ -89,7 +88,7 @@ D21 = -Beta.*Norm1 .* (S1.*Norm2+S2.*NormXY.*XY2) .*wt;
 D22 = -Beta.*Norm2 .* (S1.*Norm2+S2.*NormXY.*XY2) .*wt;
 
 % Assemble Double matrix and rescale
-D = [D11 D12; D21 D22]/(8*pi*mu);
+D = [D11 D12; D21 D22]/(mu);
 
 % Zero out rows corresponding target points on permeable membrane
 D(I,:)=zeros(length(I),length(D(1,:))); % corresponding to u1 components

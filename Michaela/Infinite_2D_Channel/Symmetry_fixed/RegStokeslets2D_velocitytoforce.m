@@ -9,8 +9,7 @@ function [f] = RegStokeslets2D_velocitytoforce(y,x,u,ep,mu,blob_num,wt)
 
 % This function requires access to function reg_funcs_withdoublet.m
 
-% Modified December 2025 to incorporate a quad weight vector and enforce
-% consistent scaling.
+% Modified December 2025 to incorporate a quad weight vector.
 
 % Inputs: 
 %       y = (y1,y2) source points
@@ -63,7 +62,7 @@ M12 = (H2.*XY1.*XY2).*wt; % Note that M21 = M12
 
 
 % Assemble Stokeslet matrix and rescale
-Mat = [M11 M12; M12 M22]/(8*pi*mu);
+Mat = [M11 M12; M12 M22]/(mu);
 
 % Conditioning check
 disp(['log10 of condition number of Mat: ', num2str(log10(condest(Mat)))])

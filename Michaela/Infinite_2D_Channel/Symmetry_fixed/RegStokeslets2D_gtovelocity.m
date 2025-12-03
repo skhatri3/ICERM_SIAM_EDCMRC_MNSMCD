@@ -10,8 +10,7 @@ function [u_beta] = RegStokeslets2D_gtovelocity(y,g,...
 
 % This function requires access to function reg_funcs_withdoublet.m
 
-% Modified December 2025 to incorporate a quad weight vector and enforce
-% consistent scaling.
+% Modified December 2025 to incorporate a quad weight vector.
 
 % Inputs:
 %       y = (y1,y2) source points 
@@ -68,8 +67,8 @@ for k = 1:N
 end
 
 % rescaling
-u1 = u1/(8*pi*mu); 
-u2 = u2/(8*pi*mu); 
+u1 = u1/(mu); 
+u2 = u2/(mu); 
 
 % repacking output 
 u_beta = [u1 u2]; 

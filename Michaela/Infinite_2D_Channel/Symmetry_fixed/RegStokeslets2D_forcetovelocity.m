@@ -9,8 +9,7 @@ function [u] = RegStokeslets2D_forcetovelocity(y,f,x,ep,mu,blob_num,wt)
 %
 % This function requires access to function reg_funcs_withdoublet.m
 
-% Modified December 2025 to incorporate a quad weight vector and enforce
-% consistent scaling.
+% Modified December 2025 to incorporate a quad weight vector.
 %
 % Inputs
 %       y = (y1,y2) source points
@@ -57,8 +56,8 @@ for k = 1:N
 end
 
 % rescaling
-u1 = u1/(8*pi*mu); 
-u2 = u2/(8*pi*mu); 
+u1 = u1/(mu); 
+u2 = u2/(mu); 
 
 % repacking output 
 u = [u1 u2]; 
