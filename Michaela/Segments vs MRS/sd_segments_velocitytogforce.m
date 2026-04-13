@@ -94,7 +94,7 @@ for k = 1:Nseg
     Norm1(:,k) = normalseg(k,1); % x-coords of normal on segment k
     Norm2(:,k) = normalseg(k,2); % y-coords of normal on segment k
     % Calculate segment reg funcs needed for segment matrix formula
-    [H10(:,k), H11(:,k), H20(:,k), H21, H22(:,k), H23(:,k), S10(:,k), ...
+    [H10(:,k), H11(:,k), H20(:,k), H21(:,k), H22(:,k), H23(:,k), S10(:,k), ...
         S11(:,k), S20(:,k), S21(:,k), S22(:,k)] = seg_reg_fncs(x,y,epMat(:,k),blob_num);
 end
 
