@@ -1,4 +1,4 @@
-function [Q0,Q1,T02,T04,T06,T08,T010,T12,T14,T16,T18,T110,T22,T24,T26,T28,T210,T32,T34,T36] = segment_int_terms(x,y,ep)
+function [Q0,Q1,T02,T04,T06,T08,T010,T12,T14,T16,T18,T110,T22,T24,T26,T28,T210,T32,T34,T36,T310] = segment_int_terms(x,y,ep)
 %
 %   * x = [x1, x2] are the evaluation/target points
 %   * y = [yj,yk] are the segment end points
@@ -68,7 +68,7 @@ T06 = (0.75*T04 + 0.25*xi1./(R14)/L - 0.25*xi0./(R04)/L )./c;
 T08 = ((5/6)*T06 + (1/6)*xi1./R16/L - (1/6)*xi0./R06/L)./c;
 T010 = ((7/8)*T08 + (1/8)*xi1./R18/L - (1/8)*xi0./R08/L)./c;
 
-% Rest of T's Calculated using the recursion (5) in overleaf
+% Rest of T's Calculated using the recursions (5) and (3) in overleaf
 T12 = (Log1-Log0)/L2 - xjdotv.*T02/L2;
 T22 = Log1/L2 - Q0/L2 - xjdotv.*T12/L2;
 T32 = Log1/L2 - 2*Q1/L2 - xjdotv.*T22/L2;
@@ -86,6 +86,4 @@ T28 = -1/6/L2 * (1./R16) + (1/6)/L2 * T06 - xjdotv.*T18/L2;
 
 T110 = -1/8/L2 * (1./R18 - 1./R08) - xjdotv.*T010/L2;
 T210 = -1/8/L2 * (1./R18) + (1/8)/L2 *T08 - xjdotv.*T110/L2;
-
-
-
+T310 = -1/8/L2 * (1./R18) + (1/8)/L2 *T18 - xjdotv.*T210/L2;
