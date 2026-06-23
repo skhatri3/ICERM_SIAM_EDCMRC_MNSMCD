@@ -359,7 +359,7 @@ hh1_exact = streamline(x1gg, x2gg, uexact, vexact, x1gg(1:end, 1), x2gg(1:end, 1
 hh2_exact = streamline(x1gg, x2gg, -uexact, -vexact, x1gg(1:end, end), x2gg(1:end, end)); % streamlines starting at right wall
 
 strmLW = 2;
-RGB = orderedcolors("gem");
+RGB = [1,0,0;0,1,0;0,0,1];
 set(hh1_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 set(hh2_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 set(hh1_exact, 'Color', RGB(3,:), 'LineStyle','--', 'linewidth', strmLW);
