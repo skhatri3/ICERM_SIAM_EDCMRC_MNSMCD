@@ -138,8 +138,8 @@ for j=1:nt
     % figure;
     % quiver(y1,y2,normal(:,1),normal(:,2))
     % axis equal
-
-    % % % figure 
+    % 
+    % figure 
     % quiver(y1,y2,f(:,1),f(:,2))
     % axis equal
 

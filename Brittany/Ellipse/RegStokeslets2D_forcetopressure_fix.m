@@ -31,7 +31,7 @@ x1 = x(:,1);
 x2 = x(:,2); 
 
 
-chi_inside = -indicator_from_boundary(x1, x2, y(:,1), y(:,2));
+chi_inside = indicator_from_boundary(x1, x2, y(:,1), y(:,2));
 
 
 kappa_s0=zeros(length(x(:,1)),1);
