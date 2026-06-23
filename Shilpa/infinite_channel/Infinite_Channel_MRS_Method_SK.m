@@ -20,9 +20,11 @@ perm_factor=1;  % will make permeable section  -factor*Lx < x < factor*Lx
 
 % Regularization parameter
 blob_num = 2; % blob choice
-ep_factor = 1; 
-%C = 0.04*8.75; % constant for beta_value 
-C = 0.04/2/1.6; 
+ep_factor = 2; 
+ep_d_factor = 2; 
+%C = 0.04*3; % constant for beta_value when ep_d_factor = 1; 
+C = 0.04*8.75*2/3; % constant for beta_value when ep_d_factor = 2; 
+%C = 0.04*2.6; %constant for beta_value when V = 0 (velocity for Step 1 permeable) 
 
 % number of source and target points
 N = 160; % Number of source points (along top  and bottom boundaries)
@@ -34,7 +36,8 @@ Nx1 = floor(pi*Nx2); % Number of target points in x direction for full channel c
 
 % top and bottom
 ds_x = (xmax - xmin)/(N-1);
-stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
+%stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
+stb = xmin:ds_x:xmax; 
 stb = stb';
 
 % left and right
@@ -67,10 +70,13 @@ normals = [normals_top; normals_bot; normals_left; normals_right];
 normals_tb = [normals_top; normals_bot];
 
 % Define weights cooresponding to wall coordinates
-wt = [ds_x*ones(size(y1_top)); ds_x*ones(size(y1_bot)); ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
+%wt = [ds_x/2; ds_x*ones(length(y1_top)-2,1); ds_x/2; ds_x/2; ds_x*ones(length(y1_bot)-2,1); ds_x/2;  ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
+wt = [ds_x; ds_x*ones(length(y1_top)-2,1); ds_x; ds_x; ds_x*ones(length(y1_bot)-2,1); ds_x;  ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
+
 
 % Define blob size based on wall discretization 
 ep = ds_y*ep_factor;
+ep_d = ep*ep_d_factor; 
 
 %% Setting up permeable region (where the boundary velocity is unknown)
 
@@ -83,9 +89,9 @@ beta(idx) = beta_value; %beta is nonzero where permeable
 %% Points where velocity will be computed within the channel
 
 %xx1 = [xmin,stb',xmax]; 
-%xx2 = [ymin,slr',ymax]; 
+xx2 = [ymin,slr',ymax]; 
 xx1 = stb'; 
-xx2 = slr'; 
+%xx2 = slr'; 
 [x1gg, x2gg] = meshgrid(xx1, xx2);
 
 [x1m, x2m] = ndgrid(xx1, xx2);
@@ -158,25 +164,28 @@ plot_streamline(u1m,u2m,x1gg,x2gg,uexact,vexact,y1,y2,'MRS - Stokeslets Only')
 u1 = u1_bd_exact; %x-coordinates of all boundary velocities
 u2 = u2_bd_exact; %y-coordinates of all boundary velocities
 u1(idx) = 0; 
-u2(idx) = 0; 
-%u2(idx) = -u2_corner_exact.*y1(idx).*sign(y2(idx))./pi;
+%u2(idx) = 0; 
+u2(idx) = -u2_corner_exact.*y1(idx).*sign(y2(idx))./pi;
 
 
 % STEP 1: Find g-force distribution due to St+SD on solid walls and SD (no
 % Stokeslets) on permeable walls
 
-[g] = RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
-    [u1,u2], ep, mu, blob_num, idx, beta, normals, wt);
+%[g] = RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
+%    [u1,u2], ep, mu, blob_num, idx, beta, normals, wt);
+[g] = RegStokeslets2D_velocityto_gforce_permeable_diff_ep([y1,y2],[y1,y2],...
+     [u1,u2],ep,ep_d,mu,blob_num, idx, beta, normals, wt); 
 g1 = g(:,1);
 g2 = g(:,2);
 
-scaleFactor = 1.5;
 figure;
-hold on
+
+subplot(2,1,1)
 sk = 1;
-%quiver(y1(1:sk:end),y2(1:sk:end),g1(1:sk:end),g2(1:sk:end),scaleFactor,'b','AutoScale','off')
-quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'r','AutoScale','off')
-plot(y1(1:sk:end),y2(1:sk:end),'ro')
+scaleFactor = 3;
+hold on
+quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'k')
+plot(y1(1:sk:end),y2(1:sk:end),'r.')
 axis equal
 title('bd velocity being set')
 axis([-4,4,-1.5,1.5])
@@ -187,7 +196,7 @@ axis([-4,4,-1.5,1.5])
 y1b=y1(idx);
 y2b=y2(idx);
 
-[u_perm] = RegStokeslets2D_gtovelocity([y1,y2], g, [y1b,y2b], ep, mu, blob_num, beta, normals, wt);
+[u_perm] = RegStokeslets2D_gtovelocity([y1,y2], g, [y1b,y2b], ep_d, mu, blob_num, beta, normals, wt);
 u_perm1 = u_perm(:,1);
 u_perm2 = u_perm(:,2);
 
@@ -196,14 +205,27 @@ u1(idx) = u_perm1;
 u2(idx) = u_perm2 + u2(idx);
 
 % Quiver plot of recomputed velocities on boundaries
+
+subplot(2,1,2)
 sk = 1;
+scaleFactor = 1.5; 
+hold on;
+plot(y1b,y2b,'r.')
+hold on
+quiver(y1b(1:sk:end),y2b(1:sk:end),u_perm1(1:sk:end),u_perm2(1:sk:end),scaleFactor,'k','AutoScale','off')
+title('Computed Velocities on permeable boundary with g and M_d')
+set(gca,'Fontsize',14)
+hold off;
+axis equal;
+axis([-Lx-1,Lx+1,-1.5,1.5])
 
 figure
+
 subplot(3,1,1);
 hold on;
-plot(y1,y2,'k.')
+plot(y1,y2,'r.')
 hold on
-quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'b','AutoScale','off')
+quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'k','AutoScale','off')
 title('Computed Velocities on Boundaries after using g')
 set(gca,'Fontsize',14)
 hold off;
@@ -211,9 +233,9 @@ axis equal;
 axis([-Lx-1,Lx+1,-1.5,1.5])
 
 subplot(3,1,2);
-plot(y1,y2,'k.')
+plot(y1,y2,'r.')
 hold on
-quiver(y1(1:sk:end),y2(1:sk:end),u1_bd_exact(1:sk:end), u2_bd_exact(1:sk:end),scaleFactor,'r','Autoscale','off')
+quiver(y1(1:sk:end),y2(1:sk:end),u1_bd_exact(1:sk:end), u2_bd_exact(1:sk:end),scaleFactor,'k','Autoscale','off')
 hold off
 title('Exact Boundary Velocities')
 set(gca,'Fontsize',14)
@@ -221,11 +243,11 @@ axis equal
 axis([-Lx-1,Lx+1,-1.5,1.5])
 
 subplot(3,1,3);
-plot(y1,y2,'k.')
+plot(y1,y2,'r.')
 hold on
-quiver(y1(1:sk:end),y2(1:sk:end),abs(u1_bd_exact(1:sk:end)-u1(1:sk:end)), abs(u2_bd_exact(1:sk:end)-u2(1:sk:end)),scaleFactor,'r','Autoscale','off')
+quiver(y1(1:sk:end),y2(1:sk:end),abs(u1_bd_exact(1:sk:end)-u1(1:sk:end)), abs(u2_bd_exact(1:sk:end)-u2(1:sk:end)),scaleFactor,'k','Autoscale','off')
 hold off
-title('Exact Boundary Velocities')
+title('Error Boundary Velocities')
 set(gca,'Fontsize',14)
 axis equal
 axis([-Lx-1,Lx+1,-1.5,1.5])
