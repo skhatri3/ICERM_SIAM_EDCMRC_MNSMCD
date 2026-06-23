@@ -1,7 +1,7 @@
-function [u_beta] = RegStokeslets2D_gtovelocity(y,g,...
+function [p] = RegStokeslets2D_gtopressure(y,g,...
     x,ep,mu,blob_num, beta, normal, wt)
 
-% Computes velocities on permeable membrane (u_beta) from intermediate
+% Computes the pressure on permeable membrane (u_beta) from intermediate
 % force g using the Method of Regularized Stokeslets Based on Cortez, SIAM
 % J. Sci Comput. 2001 and Cortez, Fluids 2021
 
@@ -11,6 +11,10 @@ function [u_beta] = RegStokeslets2D_gtovelocity(y,g,...
 % This function requires access to function reg_funcs_withdoublet.m
 
 % Modified December 2025 to incorporate a quad weight vector.
+
+% ************** NOTE ******************
+% We are not using beta here. Should we be? We are using the
+% Stokeslet pressure formula, with the f(s) = (g(s) dot n(s)) n(s).
 
 % Inputs:
 %       y = (y1,y2) source points 
@@ -36,8 +40,9 @@ x1 = x(:,1);
 x2 = x(:,2); 
 
 % initializing the velocity 
-u1 = zeros(M,1);
-u2 = zeros(M,1); 
+%u1 = zeros(M,1);
+%u2 = zeros(M,1);
+p = zeros(M,1);
 
 % loop over source points    
 for k = 1:N 
@@ -50,25 +55,33 @@ for k = 1:N
     Rsq = XY1.^2 + XY2.^2 + ep^2; 
     R2= sqrt( Rsq ); 
 
-    [~, ~, S1, S2, ~] = reg_fncs_withdoublet(ep,R2, blob_num); 
+    [~, ~, S1, ~] = reg_fncs_withdoublet(ep,R2, blob_num); 
 
     % Calculate u 
     norm1=normal(k,1); 
     norm2=normal(k,2); 
     
-    normxy=norm1*XY1+norm2*XY2;
+    ndotxy=norm1*XY1+norm2*XY2;
 
-    u1(:)=u1(:)-(beta(k)*norm1*(S1.*norm1+S2.*normxy.*XY1)*g1(k)+...
-        -beta(k)*norm2*(S2.*normxy.*XY1)*g2(k))*wt(k);
+    % Calculate pressure 
+    gdotn = g1(k)*norm1 + g2(k)*norm2;
+    
+    p(:) = p(:) + gdotn*ndotxy.*S1*wt(k);
 
-    u2(:)=u2(:)-(beta(k)*norm2*(S1.*norm2+S2.*normxy.*XY2)*g2(k)+...
-        -beta(k)*norm1*(S2.*normxy.*XY2)*g1(k))*wt(k);    
+    %u1(:)=u1(:)-(beta(k)*norm1*(S1.*norm1+S2.*normxy.*XY1)*g1(k)+...
+     %   +beta(k)*norm2*(S2.*normxy.*XY1)*g2(k))*wt(k);
+
+%    u2(:)=u2(:)-(beta(k)*norm2*(S1.*norm2+S2.*normxy.*XY2)*g2(k)+...
+ %       +beta(k)*norm1*(S2.*normxy.*XY2)*g1(k))*wt(k);    
 
 end
 
 % rescaling
-u1 = u1/(mu); 
-u2 = u2/(mu); 
+%u1 = u1/(mu); 
+%u2 = u2/(mu);
 
 % repacking output 
-u_beta = [u1 u2]; 
+%u_beta = [u1 u2]; 
+
+
+

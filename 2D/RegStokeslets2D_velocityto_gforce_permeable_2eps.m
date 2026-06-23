@@ -1,5 +1,5 @@
 function [g] = RegStokeslets2D_velocityto_gforce_permeable_2eps(y,...
-    x,u,ep1,ep2,mu,blob_num, I, beta, normal)
+    x,u,ep1,ep2,mu,blob_num, I, beta, normal, wt)
 
 
 % Computes intermediate "g" forces for permeable membrane 
@@ -73,9 +73,9 @@ R_2 = sqrt( R2_2 );
 
 
 %Stokeslet part
-M11 = H1_1 + H2_1.*XY1.*XY1; 
-M22 = H1_1 + H2_1.*XY2.*XY2; 
-M12 = H2_1.*XY1.*XY2; 
+M11 = (H1_1 + H2_1.*XY1.*XY1).*wt; 
+M22 = (H1_1 + H2_1.*XY2.*XY2).*wt; 
+M12 = (H2_1.*XY1.*XY2).*wt; 
 %M21 = H2.*XY2.*XY1; 
 
 Mat = [M11 M12; M12 M22]/(mu);
@@ -85,14 +85,13 @@ Mat = [M11 M12; M12 M22]/(mu);
 % S1(S1(:)==-Inf|S1(:)==Inf)=0;
 % S2(S2(:)==-Inf|S2(:)==Inf)=0;
 NormXY=Norm1.*XY1+Norm2.*XY2;
-D11=-Beta.*Norm1.*(S1_2.*Norm1+S2_2.*NormXY.*XY1);
-% D12=-Beta.*Norm2.*(S1.*Norm1+S2.*NormXY.*XY1);
-% 
-D12=-Beta.*Norm2.*(S2_2.*NormXY.*XY1);
-% D21=-Beta.*Norm1.*(S1.*Norm2+S2.*NormXY.*XY2);
-D21=-Beta.*Norm1.*(S2_2.*NormXY.*XY2);
-D22=-Beta.*Norm2.*(S1_2.*Norm2+S2_2.*NormXY.*XY2);
+D11=-Beta.*Norm1.*(S1_2.*Norm1+S2_2.*NormXY.*XY1).*wt;
+D12=-Beta.*Norm2.*(S1_2.*Norm1+S2_2.*NormXY.*XY1).*wt;
+D21=-Beta.*Norm1.*(S1_2.*Norm2+S2_2.*NormXY.*XY2).*wt;
+D22=-Beta.*Norm2.*(S1_2.*Norm2+S2_2.*NormXY.*XY2).*wt;
 D=[D11 D12; D21 D22]/(mu);
+
+
 %zero out rows that are for target points on permeable membrane
 D(I,:)=zeros(length(I),length(D(1,:)));
 D(I+M,:)=zeros(length(I), length(D(1,:)));

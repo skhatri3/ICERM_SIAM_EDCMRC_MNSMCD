@@ -76,8 +76,7 @@ Neps=207;
 % 
 % E=reshape(eumaxnorm_away, NNs*Neps,1);
 
-Nvals=[];
-
+Nvals=[]
 
 
 Phi1 = [epsvals(:).^2, (1./Nvals(:)).^2./epsvals(:).^2];
