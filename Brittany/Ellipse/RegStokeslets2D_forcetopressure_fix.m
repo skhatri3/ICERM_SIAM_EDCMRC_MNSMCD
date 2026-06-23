@@ -56,8 +56,8 @@ for k = 1:N
     %p(r) = (f . x)S1
     [~, ~, S1, ~, ~] = reg_fncs_withdoublet(ep,R,blob_num);
 
-    fdotXY = (kappa(k)-kappa_s0(i))*normal(k,1)*XY1 + ...
-        (kappa(k)-kappa_s0(i))*normal(k,2)*XY2; 
+    fdotXY = -((kappa(k)-kappa_s0(i))*normal(k,1)*XY1 + ...
+        (kappa(k)-kappa_s0(i))*normal(k,2)*XY2); 
     p(i) = p(i) + fdotXY.*S1*ds_s(k);
 end
 

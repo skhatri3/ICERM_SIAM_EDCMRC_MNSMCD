@@ -41,13 +41,13 @@ s = (0:N-1)'*ds;
 
 %regularization parameter
 % ep = 2*ds;
-ep = 0.01; % match the paper.
+ep = 0.1; % match the paper.
 alpha = 1e-1; % was 1e-2
 % beta = 4/3*ep*alpha*ones(N,1);
 
 %initial position cylinder on which forces are applied - cylinder is of radius r
 y1 = r*cos(s/r);
-y2 = r*(2/3)*sin(s/r);
+y2 = r/2*sin(s/r);
 
 % First derivative matrix without ds scaling
 % periodic boundary conditions, centered differences
@@ -66,7 +66,7 @@ kappa = zeros(N,1); % initialize curvature
 
 
 %final time
-tfinal = 5;
+tfinal = 0.1;
 
 %number of timesteps (not specified in the paper)
 tsteps =200;
@@ -138,7 +138,7 @@ for j=1:nt
     % figure;
     % quiver(y1,y2,normal(:,1),normal(:,2))
     % axis equal
-    % % 
+    % 
     % figure 
     % quiver(y1,y2,f(:,1),f(:,2))
     % axis equal
@@ -154,7 +154,7 @@ q=reshape(q, Nx, Ny);
     hold on
     plot(y1,y2,'k.-');
     axis equal
-    quiver(y1,y2,u(:,1),u(:,2), 'off','Color', 'r')
+    quiver(y1,y2,u(:,1),u(:,2), 'Color', 'r','off')
 
 
     y1 = y1 + dtstep*(u(:,1));
