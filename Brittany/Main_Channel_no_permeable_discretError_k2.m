@@ -5,8 +5,6 @@
 %Developed by Ricardo Cortez, Brittany Leathers, and Michaela Kubacki
 %July 2024
 
-%Find best C1 for eps=Cds^(1/p) for different values of p
-%And for different Flow Regimes
 
 clear all 
 % close all
@@ -16,7 +14,7 @@ clear all
 %setting the viscosity
 mu = 1; 
 % Nvals=10*2.^(0:5);
-Nvals=[10 20 40 80 160 320 640 ];
+Nvals=[8 10 15 20 25 30 35 40 45];
 %number of points on boundary where velocity is set and force is computed 
 
 
@@ -25,7 +23,6 @@ blob=2;
 
 %constant determining inflow velocity profile
 a=4;
-%% 
 
 %channel
 Lx = 5;
@@ -35,37 +32,31 @@ xmax = xmin + Lx;
 ymin = 0;
 ymax = ymin + Ly;
 
-eumaxnorm_away=zeros(length(Nvals),1);
-eu2norm_away=zeros(length(Nvals), 1);
-eu_pointaway=zeros(length(Nvals), 1);
-eumaxnorm_near=zeros(length(Nvals),1);
-eu2norm_near=zeros(length(Nvals), 1);
 
-%% Refinement Study
+eumaxnorm_away=zeros(length(Nvals));
+eu2norm_away=zeros(length(Nvals));
+eumaxnorm_near=zeros(length(Nvals));
+eu2norm_near=zeros(length(Nvals));
+eu_pointaway=zeros(length(Nvals));
+
+
+%% Loop through Nvals
 
 for i=1:length(Nvals)
     N=Nvals(i)
+
+
 
 %discretization of channel
 ds = (ymax-ymin)/N;
 ds_x=ds; ds_y=ds;
 
-%Regularization parameter
-% ep=1.6645*ds;
-% ep=1.8*ds;
-% 
-% % ep=2*sqrt(ds)
-% ep=0.9*ds^(2/3);
-% ep=0.35*ds^(2/3);
-ep=0.15*ds^(1/2);
 
-% ep=2.5*ds;
+% for j=1:length(epsvals)
 
-ep=2.7*ds;
-% ep=0.43*ds^(2/3);
-ep=0.2*ds^(1/2);
-ep=0.1*ds^(1/2);
-
+    %Regularization parameter
+    ep=0.03;
+   
 
 %discretization of top and bottom:
 s = ds/2:ds:xmax-ds/2;
@@ -128,11 +119,6 @@ f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep,mu, blob,...
 f1 = f(:,1);
 f2 = f(:,2);  
 
-% Calculate velocities on right hand side too
-Ufull=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[y1f,y2f],ep,mu,...
-    blob, wt);
-ufull=Ufull(:,1); vfull=Ufull(:,2);
-
 
 %calculate on grid away from the boundary
 xmin_away=2;
@@ -158,7 +144,7 @@ u_soln_away=a*(yg_away/Ly.*(1-yg_away/Ly));
 uerror_away=abs(ug_away-u_soln_away);
 eumaxnorm_away(i)=max(uerror_away(:));
 eu2norm_away(i)=sqrt(dx_away^2*sum(sum(uerror_away.^2)));
-
+% 
 %calculate on grid including near the boundary
 xmin_near=2;
 ymin_near=0.01;
@@ -185,7 +171,6 @@ eumaxnorm_near(i)=max(uerror_near(:));
 eu2norm_near(i)=sqrt(dx_near^2*sum(sum(uerror_near.^2)));
 
 
-
 %Find solution at single point away from boundary and single point near
 %boundary
 %Away: (2,1/2)
@@ -193,33 +178,37 @@ uaway=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[2 0.5],ep,mu,...
     blob, wt);
 eu_pointaway(i)=abs(uaway(:,1)-a*(0.5/Ly.*(1-0.5/Ly)));
 
-% % Calculate velocities on right hand side too
-% Ufull=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[y1f,y2f],ep,mu,...
-%     blob, wt);
-% ufull=Ufull(:,1); vfull=Ufull(:,2);
-% 
-% % Check flow rates 
-% % inlet
-% Rin=ds*sum(dot(normals_side, [u1_side u2_side]));
-% 
-% %top
-% normals_top=zeros(length( y1_top),2);
-% normals_top(:,2)=1;
-% Rtop=ds*sum(dot(normals_top, [ufull(1:length(y1_top)), ...
-%     vfull(1:length(y1_top))]));
-% 
-% %outlet
-% x2_out= (ymin+ds/2:ds:ymax-ds/2)';
-% x1_out= xmax*ones(size(x2_out));
-% uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
-%     [x1_out,x2_out],ep,mu, blob, wt);
-% Rout=-ds*sum(dot(normals_side, uu));
-% 
-% error(i)=Rin+Rtop+Rout;
-
+% %Near: 
+% for k=1:length(nearpointoptions)
+%     if k==1
+%         unear=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[2 sqrt(ep)/2],...
+%             ep,mu,blob, wt);
+%         eu_pointnear(i,j, k)=abs(unear(:,1)-a*(sqrt(ep)/2/Ly.*(1-sqrt(ep)/2/Ly)));
+%     else
+%         unear=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
+%             [2 nearpointoptions(k)],...
+%             ep,mu,blob, wt);
+%         eu_pointnear(i,j, k)=abs(unear(:,1)-a*(nearpointoptions(k)/Ly.*...
+%             (1-nearpointoptions(k)/Ly)));
+%     end
+% end
 
 end
 %%
+% clear all
+% 
+% Data=open('Error_eps_no_perm.mat');
+% Nvals=Data.Nvals;
+% epsvals=Data.epsvals;
+% eu2norm_away=Data.eu2norm_away;
+% eu2norm_near=Data.eu2norm_near;
+% eu_pointaway=Data.eu_pointaway;
+% eumaxnorm_away=Data.eumaxnorm_away;
+% eumaxnorm_near=Data.eumaxnorm_near;
+% 
+% clear('Data');
+
+%% Plot error
 
 colorp=[0.4940, 0.1840, 0.5560];
 colorlb=[0.3010, 0.6450, 0.9930];
@@ -227,110 +216,47 @@ colorg=[0.4660, 0.6740, 0.1880];
 colordb=	[0, 0.4470, 0.7410];
 
 forploty0=0.1;
-forplotdx0=0.02;
-dxforplot=1./Nvals;
-yforplot=forploty0/forplotdx0^1*dxforplot.^(2);
-forploty02=25;
-forplotdx02=10;
-dxforplot2=1./Nvals;
-yforplot2=forploty02/forplotdx02^2*dxforplot2.^1;
-   
-%Refinement study plots
+forplotdx0=0.1;
+dxforplot=Nvals;
+yforplot=20*forploty0/forplotdx0^1./dxforplot.^(2);
+
+
+
 figure;
-loglog(Nvals, eumaxnorm_near,'o-', 'LineWidth', 2.5, 'MarkerSize', ...
-       10, 'Color', colorlb)
-hold on
+nNs=length(Nvals);
+
+
+   %Refinement study plots
+   loglog(Nvals(1:nNs), eumaxnorm_away(1:nNs),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+       10)
+    hold on
 % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
 % loglog(Nyvals, e1u, 'd-', 'LineWidth', 2.5,'MarkerSize', 10,'Color', colorp);
-   loglog(Nvals, yforplot, 'LineWidth', 2,'Color', colorg)
-text(100,1/7000,'$\Delta s^{2}$', 'Color', colorg, 'FontSize', 14, ...
-    'Interpreter', 'latex');
-% loglog(Nvals, yforplot2, 'LineWidth', 2,'Color', colorg)
-% text(100,1/300,'$\Delta s$', 'Color', colorg, 'FontSize', 14, ...
+
+% loglog(epsvals, yforplot2, 'LineWidth', 2,'Color', 'b')
+% text(200,1.6/1000000,'$1/N^2$', 'Color', colorg, 'FontSize', 14, ...
 %     'Interpreter', 'latex');
-hold off
 %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
-axis([10 1000 10^(-7) 10^(0) ]);
+
+loglog(Nvals(1:nNs), yforplot(1:nNs), 'LineWidth', 2,'Color', 'k')
+text(10^(-1),0.01,'$\Delta s$', 'Color', 'k', 'FontSize', 14, ...
+    'Interpreter', 'latex');
+hold off;
+% axis([10^(-6) 10^0 10^(-4) 10^(0) ]);
 set(gca, 'FontSize', 17);
-% legend('$L^{\infty}$', '$L^2$', '$L^1$','Interpreter','latex', 'FontSize', 20);
+% legend(sprintf('$N=%d$', epsvals(1)), sprintf('$N=%d$', epsvals(2)),...
+% sprintf('$N=%d$', epsvals(3)), sprintf('$N=%d$', epsvals(4)),...
+%    sprintf('$N=%d$', epsvals(5)),sprintf('$N=%d$', epsvals(6)),...
+%    sprintf('$N=%d$', epsvals(7)),sprintf('$N=%d$', epsvals(8)),...
+%    sprintf('$N=%d$', epsvals(9)),sprintf('$N=%d$', epsvals(10)),...
+%    sprintf('$N=%d$', epsvals(11)),sprintf('$N=%d$', epsvals(12)),...
+%     'Interpreter','latex', 'FontSize', 11);
 xlabel('$N$', 'FontSize', 18,'Interpreter','latex')
-ylabel('$||e||_{\infty}$', 'FontSize', 17, 'Interpreter','latex')
-title('Refinement Study, $\epsilon=0.1ds^{1/2}$, "away"',...
+ylabel('$||e||_{\infty}$', 'FontSize', 17,'Interpreter','latex')
+title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
     'FontSize', 18,'Interpreter','latex')  
 % yticks([10^(-5) 10^(-3) 10^(0)])
+%$||e||_{\infty}$
 
 
-% %%
-% d1u=zeros(1, length(Nvals));
-% d2u=zeros(1, length(Nvals));
-% dmaxu=zeros(1, length(Nvals));
-% 
-% d1v=zeros(1, length(Nvals));
-% d2v=zeros(1, length(Nvals));
-% dmaxv=zeros(1, length(Nvals));
-% 
-% for i=1:length(Nvals)-1
-%     %from fine to coarse 
-%     ufine=usolutions{i+1}; 
-%     ucoarse=usolutions{i};
-%     diffu=(ucoarse-ufine);
-%     % ufinerest=ufine(1:2:end, 1:2:end);
-%     % diffu=(ucoarse-ufinerest);
-% 
-% 
-%     vfine=vsolutions{i+1}; 
-%     vcoarse=vsolutions{i};
-%     diffv=(vcoarse-vfine);
-%     % vfinerest=vfine(1:2:end, 1:2:end);
-%     % diffv=(vcoarse-vfinerest);
-%     % dx=dxs(i);
-% 
-%     d1u(1, i)= dx^2*sum(sum(abs(diffu)));
-%     d2u(1, i)= sqrt(dx^2*sum(sum(diffu(:,:).^2)));
-%     dmaxu(1, i)= max(max(abs(diffu)));
-% 
-%     d1v(1, i)= dx^2*sum(sum(abs(diffv)));
-%     d2v(1, i)= sqrt(dx^2*sum(sum(diffv(:,:).^2)));
-%     dmaxv(1, i)= max(max(abs(diffv)));
-% 
-% end
 
-%%
-
-% %% Allnorms refinement study
-% 
-% colorp=[0.4940, 0.1840, 0.5560];
-% colorlb=[0.3010, 0.6450, 0.9930];
-% colorg=[0.4660, 0.6740, 0.1880];
-% colordb=	[0, 0.4470, 0.7410];
-% 
-% forploty0=1.5;
-% forplotdx0=10;
-% dxforplot=1./Nvals;
-% yforplot=forploty0/forplotdx0^1*dxforplot.^1;
-% forploty02=50;
-% forplotdx02=10;
-% dxforplot2=1./Nvals;
-% yforplot2=forploty02/forplotdx02^2*dxforplot2.^2;
-% 
-% %Refinement study plots
-% figure;
-% loglog(Nvals, dmaxu,'o-', 'LineWidth', 3, 'MarkerSize', ...
-%        10, 'Color', colorlb)
-% hold on
-% loglog(Nvals, d2u, 's-', 'LineWidth', 3,'MarkerSize', 10, 'Color', colordb);
-% loglog(Nvals, d1u, 'd-', 'LineWidth', 3,'MarkerSize', 10,'Color', colorp);
-%    loglog(Nvals(3:5), yforplot(3:5), 'LineWidth', 2,'Color', colorg)
-% text(360,1/7000,'1/N', 'Color', colorg, 'FontSize', 16);
-% % loglog(Nvals(3:5), yforplot2(3:5), 'LineWidth', 1.5,'Color', colorg)
-% % text(100,1.4/100000,'1/N^2', 'Color', colorg, 'FontSize', 12);
-% hold off
-% %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
-% legend('L^{\infty}', 'L^2', 'L^1');
-% axis([10 360 10^(-4) 10^(0)]);
-% set(gca, 'FontSize', 12);
-% xlabel('N_x', 'FontSize', 18)
-% ylabel('Difference Norms', 'FontSize', 18)
-% title('Horizontal Error Refinement Study',...
-%     'FontSize', 18,'Interpreter','latex')
-   

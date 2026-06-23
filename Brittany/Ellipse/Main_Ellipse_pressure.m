@@ -1,0 +1,195 @@
+%main_ellipse No permeability - compute pressure
+
+%Based on Example 3 Section 3.1 of Cortez, Fluids, 2021
+% Permeable circle with forces = curvature times normal vector
+% Comppare to an exact solution
+% Start with a circle of radius 1
+% Compute the velocit from forces
+
+% Developed for ICERM 
+% July 30, 2024
+% Author: Wanda Strychalski
+%Edited Brittany
+
+
+clear all
+clc
+
+
+    vid = VideoWriter('Ellipse',  'MPEG-4');
+    vid.FrameRate = 80;
+    open(vid);
+    figure;
+   
+
+%% Parameters to set
+
+%setting the viscosity
+mu = 1;
+
+% initial radius of the circle
+r  = 1;
+
+blob_num = 2;
+
+%number of points on boundary where force is applied
+N = 400; % match the paper
+
+%discretization of cylinder boundary
+ds = 2*pi*r/N; % initial
+s = (0:N-1)'*ds;
+
+%regularization parameter
+% ep = 2*ds;
+ep = 0.01; % match the paper.
+alpha = 1e-1; % was 1e-2
+% beta = 4/3*ep*alpha*ones(N,1);
+
+%initial position cylinder on which forces are applied - cylinder is of radius r
+y1 = r*cos(s/r);
+y2 = r*(2/3)*sin(s/r);
+
+% First derivative matrix without ds scaling
+% periodic boundary conditions, centered differences
+Dc = spdiags([-1 0 1],[-1:1],N,N);
+Dc(1,N) = -1;
+Dc(N,1) = 1;
+
+% Second derivative matrix without ds scaling
+% periodic boundary conditions, centered differences
+DD2 = spdiags([1 -2 1],-1:1,N,N);
+DD2(1,N) = 1;
+DD2(N,1) = 1;
+
+
+kappa = zeros(N,1); % initialize curvature
+
+
+%final time
+tfinal = 5;
+
+%number of timesteps (not specified in the paper)
+tsteps =200;
+
+%timestep
+dtstep = tfinal/tsteps;
+area = zeros(tsteps+1,1);
+area(1) = polyarea([y1;y1(1)],[y2;y2(1)]);
+
+time = 0:dtstep:tfinal;
+time = time';
+nt = length(time)-1;
+%%
+
+%looping over time
+for j=1:nt
+
+    y = [y1, y2];
+
+    % ds_s=ds*ones(N,1);
+    ds_s=sqrt(([y1(2:end); y1(1)]-y1).^2+ ([y2(2:end); y2(1)]-y2).^2);
+
+
+    %compute tangent
+    D1 = 1./(2*ds).*Dc;
+    dy = D1*y;
+    magdy = sqrt(dy(:,1).^2 + dy(:,2).^2);
+    tangent = dy./magdy;
+    %compute normal
+    normal =[tangent(:,2), -tangent(:,1)];
+
+
+    xmin=-1.5;
+    ymin=-1.5;
+    Lx=3; Ly=3;
+    Nx=80;
+    Ny=80;
+    dx_g=Lx/Nx; 
+    dy_g=Ly/Ny;
+    xg=dx_g*(0:Nx-1)+xmin;
+    yg=dy_g*(0:Ny-1)+ymin;
+    [xg,yg]=ndgrid(xg,yg);
+    xg_vec=reshape(xg, Nx*Ny,1);
+    yg_vec=reshape(yg, Nx*Ny,1);
+    targ=[xg_vec yg_vec];
+
+    % figure;
+    % pcolor(xg,yg, chi_inside); 
+    % colorbar
+    % shading flat
+    % hold on; 
+    % plot(y1,y2);
+    % hold off;
+
+
+    D2 = 1/(ds^2)*DD2;
+    dydy = D2*y;
+
+    % compute curvature
+    kappa = (dy(:,1).*dydy(:,2)-dy(:,2).*dydy(:,1))./(magdy.^3);
+ 
+
+    % beta = 4/3*ep*alpha*ones(N,1);
+
+    f = -kappa.*normal;
+    fds = f.*ds_s; % force and not force density
+    % b = beta.*f;
+
+    % figure;
+    % quiver(y1,y2,normal(:,1),normal(:,2))
+    % axis equal
+    % % 
+    % figure 
+    % quiver(y1,y2,f(:,1),f(:,2))
+    % axis equal
+
+    u=RegStokeslets2D_forcetovelocity(y,f,y,ep,mu,blob_num,ds_s);
+
+    % [q] = RegStokeslets2D_forcetopressure(y,fds, targ,ep,blob_num);
+    [q] = RegStokeslets2D_forcetopressure_fix(y,kappa,targ, ep,blob_num, 0,...
+         normal, ds_s);
+q=reshape(q, Nx, Ny);
+
+    pcolor(xg, yg, q); colorbar; shading flat;
+    hold on
+    plot(y1,y2,'k.-');
+    axis equal
+    quiver(y1,y2,u(:,1),u(:,2), 'off','Color', 'r')
+
+
+    y1 = y1 + dtstep*(u(:,1));
+    y2 = y2 + dtstep*(u(:,2));
+
+
+    
+
+
+    frame = getframe(gcf);
+    writeVideo(vid,frame);
+    % figure(1)
+    % pfig = pcolor(x1m,x2m,pmesh);
+    % shading interp;
+    % set(pfig, 'EdgeColor', 'none');
+    % hold on
+    % plot(y1,y2,'k.-')
+    % colorbar
+    % time_str = sprintf('Time %.1f\n',time(counter));
+    % title(time_str);
+    % axis equal
+    %
+    % figure(2)
+    % plot(x2m(40,:),pmesh(40,:));
+    % grid on
+
+    % if(video_flag)
+    %     currFrame = getframe(gcf);
+    %     writeVideo(vidObj,currFrame);
+    % end
+
+end
+
+close(vid)
+
+%%
+figure;
+plot(xg(:, end/2), q(:, end/2), '-');

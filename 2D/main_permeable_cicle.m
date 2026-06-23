@@ -15,13 +15,13 @@ clear all
 clc
 
 
-video_flag = 0; % save the movie
+video_flag = 1; % save the movie
 if(video_flag)
     vidObj = VideoWriter('balloon_problem.mp4','MPEG-4');
     open(vidObj);
 end
 
-
+figure;
 %% Parameters to set
 
 %setting the viscosity
