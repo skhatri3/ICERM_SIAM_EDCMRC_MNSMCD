@@ -19,20 +19,21 @@ perm_factor=1;  % will make permeable section  -factor*Lx < x < factor*Lx
 % Numerical Parameters
 
 % Regularization parameter
-blob_num = 1; % blob choice
-ep_factor = 20; 
-C = 0.04; % constant for beta_value 
-%scalefactor = 0.05; % for the boundary velocity figures
+blob_num = 2; % blob choice
+ep_factor = 1; 
+%C = 0.04*8.75; % constant for beta_value 
+C = 0.04/2/1.6; 
 
 % number of source and target points
 N = 160; % Number of source points (along top  and bottom boundaries)
-Nx1 = 40*5; % Number of target points in x direction for full channel calc
 Nx2 = 80; % Number of target points in y direction for full channel calc
+Nx1 = floor(pi*Nx2); % Number of target points in x direction for full channel calc
+
 
 %% Discretization of channel walls 
 
 % top and bottom
-ds_x = (xmax - xmin)/N;
+ds_x = (xmax - xmin)/(N-1);
 stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
 stb = stb';
 
@@ -69,7 +70,7 @@ normals_tb = [normals_top; normals_bot];
 wt = [ds_x*ones(size(y1_top)); ds_x*ones(size(y1_bot)); ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
 
 % Define blob size based on wall discretization 
-ep = ds_y/ep_factor;
+ep = ds_y*ep_factor;
 
 %% Setting up permeable region (where the boundary velocity is unknown)
 
@@ -81,8 +82,10 @@ beta(idx) = beta_value; %beta is nonzero where permeable
 
 %% Points where velocity will be computed within the channel
 
-xx1 = linspace(xmin+ds_x/2,xmax-ds_x/2,Nx1);
-xx2 = linspace(ymin+ds_y/2,ymax-ds_y/2,Nx2);
+%xx1 = [xmin,stb',xmax]; 
+%xx2 = [ymin,slr',ymax]; 
+xx1 = stb'; 
+xx2 = slr'; 
 [x1gg, x2gg] = meshgrid(xx1, xx2);
 
 [x1m, x2m] = ndgrid(xx1, xx2);
@@ -113,7 +116,11 @@ p_tb_exact = [p_top_exact; p_bot_exact];
 [uexact,vexact,~] = permeablechannelexact(x1gg,x2gg,Da);
 speed_exact = sqrt(uexact.^2 + vexact.^2);
 
-%% Stokeslets Only
+%get exact solution at upper left corner 
+[u1_corner_exact,u2_corner_exact,p_corner_exact] = permeablechannelexact(xmin,ymax,Da); %top velocity
+
+
+%% Stokeslets version assuming knowing velocities on all boundaries 
 %
 % Use Stokeslets and exact velocities on top and bottom to find f on Gamma
 % Given the exact velocities on boundary of channel (from the true
@@ -121,7 +128,7 @@ speed_exact = sqrt(uexact.^2 + vexact.^2);
 % forces to find the velocities throughout the channel
 
 % All four sides of channel
-ftemp = RegStokeslets2D_velocitytoforce([y1,y2], [y1,y2], [u1_bd_exact,u2_bd_exact], ep, mu, blob_num, wt);
+ftemp = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1_bd_exact,u2_bd_exact],ep,mu,blob_num,wt);
 
 % From boundary forces, calculate channel velocities
 ug = RegStokeslets2D_forcetovelocity([y1,y2],ftemp,[x1,x2],ep,mu,blob_num,wt);
@@ -132,14 +139,123 @@ u1m = reshape(ug1,size(xx1,2),size(xx2,2)); %x-coords of computed velocities
 u2m = reshape(ug2,size(xx1,2),size(xx2,2)); %y-coords of computed velocities
 
 % Errors
-u_error = uexact - u1m';
-v_error = vexact - u2m';
+u_error_MRS = uexact - u1m';
+v_error_MRS = vexact - u2m';
 
-[MRS_Stokeslet_errors] = calculate_errors(u_error,v_error,xx1,xx2,dx_g,dy_g, 'MRS Stokeslets Only')
+[MRS_Stokeslet_errors] = calculate_errors(u_error_MRS,v_error_MRS,xx1,xx2,dx_g,dy_g,y1,y2,'MRS Stokeslets Only')
 
 plot_streamline(u1m,u2m,x1gg,x2gg,uexact,vexact,y1,y2,'MRS - Stokeslets Only')
 
 
+%% Permeable Channel Problem
+% Now we utilize the Stokeslets + Source Doublets approach to simulate the
+% permeable channel flow
+
+% 4-Step Permeable Channel Process: Input and output velocities are the known (exact)
+% velocities on left and right, and zero for unknown velocities on top and
+% bottom (where it's permeable).
+
+u1 = u1_bd_exact; %x-coordinates of all boundary velocities
+u2 = u2_bd_exact; %y-coordinates of all boundary velocities
+u1(idx) = 0; 
+u2(idx) = 0; 
+%u2(idx) = -u2_corner_exact.*y1(idx).*sign(y2(idx))./pi;
+
+
+% STEP 1: Find g-force distribution due to St+SD on solid walls and SD (no
+% Stokeslets) on permeable walls
+
+[g] = RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
+    [u1,u2], ep, mu, blob_num, idx, beta, normals, wt);
+g1 = g(:,1);
+g2 = g(:,2);
+
+scaleFactor = 1.5;
+figure;
+hold on
+sk = 1;
+%quiver(y1(1:sk:end),y2(1:sk:end),g1(1:sk:end),g2(1:sk:end),scaleFactor,'b','AutoScale','off')
+quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'r','AutoScale','off')
+plot(y1(1:sk:end),y2(1:sk:end),'ro')
+axis equal
+title('bd velocity being set')
+axis([-4,4,-1.5,1.5])
+
+% STEP 2: Use g on full boundary to find missing velocities on permeable walls
+
+% Boundary points for permeable section
+y1b=y1(idx);
+y2b=y2(idx);
+
+[u_perm] = RegStokeslets2D_gtovelocity([y1,y2], g, [y1b,y2b], ep, mu, blob_num, beta, normals, wt);
+u_perm1 = u_perm(:,1);
+u_perm2 = u_perm(:,2);
+
+% Replace the placeholder zeros in u1,u2 with the velocities
+u1(idx) = u_perm1;
+u2(idx) = u_perm2 + u2(idx);
+
+% Quiver plot of recomputed velocities on boundaries
+sk = 1;
+
+figure
+subplot(3,1,1);
+hold on;
+plot(y1,y2,'k.')
+hold on
+quiver(y1(1:sk:end),y2(1:sk:end),u1(1:sk:end),u2(1:sk:end),scaleFactor,'b','AutoScale','off')
+title('Computed Velocities on Boundaries after using g')
+set(gca,'Fontsize',14)
+hold off;
+axis equal;
+axis([-Lx-1,Lx+1,-1.5,1.5])
+
+subplot(3,1,2);
+plot(y1,y2,'k.')
+hold on
+quiver(y1(1:sk:end),y2(1:sk:end),u1_bd_exact(1:sk:end), u2_bd_exact(1:sk:end),scaleFactor,'r','Autoscale','off')
+hold off
+title('Exact Boundary Velocities')
+set(gca,'Fontsize',14)
+axis equal
+axis([-Lx-1,Lx+1,-1.5,1.5])
+
+subplot(3,1,3);
+plot(y1,y2,'k.')
+hold on
+quiver(y1(1:sk:end),y2(1:sk:end),abs(u1_bd_exact(1:sk:end)-u1(1:sk:end)), abs(u2_bd_exact(1:sk:end)-u2(1:sk:end)),scaleFactor,'r','Autoscale','off')
+hold off
+title('Exact Boundary Velocities')
+set(gca,'Fontsize',14)
+axis equal
+axis([-Lx-1,Lx+1,-1.5,1.5])
+
+
+% Now that the missing velocities are recovered, steps 3-4 are the regular
+% "Stokeslet" problem, given boundary velocities, find boundary forces,
+% then find channel velocities.
+
+% STEP 3: Use boundary velocities to solve for forces on boundary
+f = RegStokeslets2D_velocitytoforce([y1,y2], [y1,y2], [u1,u2], ep, mu, blob_num, wt);
+f1 = f(:,1);
+f2 = f(:,2);
+
+% STEP 4: compute velocity everywhere using the computed forces
+
+ug = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[x1,x2],ep,mu,blob_num, wt);
+ug1 = ug(:,1);
+ug2 = ug(:,2);
+u1m = reshape(ug1,size(xx1,2),size(xx2,2)); %x-coords of computed velocities
+u2m = reshape(ug2,size(xx1,2),size(xx2,2)); %y-coords of computed velocities
+speed = sqrt(u1m.^2 + u2m.^2);
+
+% Errors
+u_error = uexact - u1m';
+v_error = vexact - u2m';
+
+[MRS_Permeable_errors] = calculate_errors(u_error,v_error,xx1,xx2,dx_g,dy_g,y1,y2, 'MRS - Permeable')
+
+plot_streamline(u1m,u2m,x1gg,x2gg,uexact,vexact,y1,y2,'MRS - Permeable')
 
 %% Exact solutions (Bernardi, 2023)
 function [ug,vg,pg] = permeablechannelexact(x,y,Da)
@@ -175,14 +291,14 @@ hh2_comp = streamline(x1gg, x2gg, -u1m', -u2m', x1gg(1:end, end), x2gg(1:end, en
 hh1_exact = streamline(x1gg, x2gg, uexact, vexact, x1gg(1:end, 1), x2gg(1:end, 1)); % streamlines starting at left wall
 hh2_exact = streamline(x1gg, x2gg, -uexact, -vexact, x1gg(1:end, end), x2gg(1:end, end)); % streamlines starting at right wall
 
-strmLW = 2;
-RGB = orderedcolors("gem");
+strmLW = 1;
+RGB = [1,0,0;0,1,0;0,0,1]; %orderedcolors("gem");
 set(hh1_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 set(hh2_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 set(hh1_exact, 'Color', RGB(3,:), 'LineStyle','--', 'linewidth', strmLW);
 set(hh2_exact, 'Color', RGB(3,:), 'LineStyle','--', 'linewidth', strmLW);
 
-title(['Computed (blue) and exact (yellow) streamlines - ' method_name])
+title(['Streamlines - ' method_name])
 set(gca, 'FontSize', 20)
 xlabel('$x$', 'Interpreter', 'latex')
 ylabel('$y$', 'Interpreter', 'latex')
@@ -192,7 +308,7 @@ axis([-4,4,-1.5,1.5])
 end
 
 %% Errors
-function [errors] = calculate_errors(u_error,v_error,xx1,xx2,dx,dy, method_name)
+function [errors] = calculate_errors(u_error,v_error,xx1,xx2,dx,dy,y1,y2, method_name)
 
 u_error_max = max(max(abs(u_error)));
 v_error_max = max(max(abs(v_error)));
@@ -200,32 +316,55 @@ u_error_L1 = dx*dy*sum(sum(abs(u_error)));
 v_error_L1 = dx*dy*sum(sum(abs(v_error)));
 u_error_L2 = sqrt(dx*dy*sum(sum(u_error.^2)));
 v_error_L2 = sqrt(dx*dy*sum(sum(v_error.^2)));
+error_mag = sqrt(u_error.^2+v_error.^2); 
 
-ColNames = {'Max','L1','L2'};
+ColNames = {'Error','Max','L1','L2'};
+coltit = ['u';'v'];
 Emax = [u_error_max; v_error_max];
 EL1 = [u_error_L1; v_error_L1];
 EL2 = [u_error_L2; v_error_L2];
-errors = table(Emax, EL1, EL2,'VariableNames',ColNames);
+errors = table(coltit, Emax, EL1, EL2,'VariableNames',ColNames);
 
 figure
 
-subplot(2,1,1);
-surf(xx1, xx2, u_error, 'EdgeColor', 'none');
-colorbar;
+subplot(2,2,1);
+pcolor(xx1,xx2,u_error)
+shading interp
+colorbar('southoutside');
 title(['Error in u (horizontal) velocity -- ' method_name]);
 xlabel('x');
 ylabel('y');
 axis equal;
-view(2); % View from above for 2D representation
+%view(2); % View from above for 2D representation
 
-subplot(2,1,2);
-surf(xx1, xx2, v_error, 'EdgeColor', 'none');
-colorbar;
+subplot(2,2,2);
+pcolor(xx1,xx2,v_error)
+shading interp
+colorbar('southoutside');
 title(['Error in v (vertical) velocity -- ' method_name]);
 xlabel('x');
 ylabel('y');
 axis equal;
-view(2); % View from above for 2D representation
+%view(2); % View from above for 2D representation
+
+subplot(2,2,3); 
+%scaleFactor = 1.5;
+sk = 1;
+hold on 
+plot(y1, y2, 'r.')
+quiver(xx1(1:sk:end,1:sk:end) , xx2(1:sk:end,1:sk:end), u_error(1:sk:end,1:sk:end), v_error(1:sk:end,1:sk:end),3,'k')
+axis equal
+title('error in velocity')
+
+subplot(2,2,4);
+pcolor(xx1,xx2,error_mag)
+shading interp
+colorbar('southoutside');
+title(['Error in velocity mag -- ' method_name]);
+xlabel('x');
+ylabel('y');
+axis equal;
+%view(2); % View from above for 2D representation
 
 end
 
