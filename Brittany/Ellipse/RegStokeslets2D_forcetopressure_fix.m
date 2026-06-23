@@ -1,5 +1,5 @@
 function [p] = RegStokeslets2D_forcetopressure_fix(y,kappa,x,ep,blob_num, b,...
-    chi_inside, normal, ds_s)
+     normal, ds_s)
 
 % Computes pressures at set of points when given a set of points and
 % forces at those points using the Method of Regularized Stokeslets 
@@ -29,6 +29,9 @@ y1 = y(:,1);
 y2 = y(:,2); 
 x1 = x(:,1); 
 x2 = x(:,2); 
+
+
+chi_inside = -indicator_from_boundary(x1, x2, y(:,1), y(:,2));
 
 
 kappa_s0=zeros(length(x(:,1)),1);
@@ -83,3 +86,18 @@ distSq = (px - xv).^2 + (py - yv).^2;
 cx = xv(minIdx);
 cy = yv(minIdx);
 end
+
+
+function chi = indicator_from_boundary(xg, yg, xb, yb)
+
+if xb(1) ~= xb(end) || yb(1) ~= yb(end)
+    xb = [xb; xb(1)];
+    yb = [yb; yb(1)];
+end
+
+inside = inpolygon(xg, yg, xb, yb);
+
+chi = double(inside);
+
+end
+

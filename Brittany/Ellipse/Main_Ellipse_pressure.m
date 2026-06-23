@@ -113,12 +113,6 @@ for j=1:nt
     yg_vec=reshape(yg, Nx*Ny,1);
     targ=[xg_vec yg_vec];
 
-    
-    chi_inside = -IBDLcharacteristic(xmin,ymin, Lx, Ly, Nx, Ny, ...
-        y,  normal , ds_s );
-
-    % chi_inside = -indicator_from_boundary(xg, yg, y(:,1), y(:,2));
-
     % figure;
     % pcolor(xg,yg, chi_inside); 
     % colorbar
@@ -153,7 +147,7 @@ for j=1:nt
 
     % [q] = RegStokeslets2D_forcetopressure(y,fds, targ,ep,blob_num);
     [q] = RegStokeslets2D_forcetopressure_fix(y,kappa,targ, ep,blob_num, 0,...
-        reshape(chi_inside, Nx*Ny,1), normal, ds_s);
+         normal, ds_s);
 q=reshape(q, Nx, Ny);
 
     pcolor(xg, yg, q); colorbar; shading flat;
