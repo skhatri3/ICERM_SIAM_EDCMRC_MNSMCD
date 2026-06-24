@@ -27,7 +27,7 @@ C = 0.04*8.75*2/3; % constant for beta_value when ep_d_factor = 2;
 %C = 0.04*2.6; %constant for beta_value when V = 0 (velocity for Step 1 permeable) 
 
 % number of source and target points
-N = 160; % Number of source points along top  and bottom boundaries if including endpoints
+N = 160; % Number of source points (along top  and bottom boundaries)
 Nx2 = 80; % Number of target points in y direction for full channel calc
 Nx1 = floor(pi*Nx2); % Number of target points in x direction for full channel calc
 
@@ -37,12 +37,12 @@ Nx1 = floor(pi*Nx2); % Number of target points in x direction for full channel c
 % top and bottom
 ds_x = (xmax - xmin)/(N-1);
 %stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
-stb = xmin+ds_x:ds_x:xmax-ds_x; 
+stb = xmin:ds_x:xmax; 
 stb = stb';
 
 % left and right
-ds_y = (ymax - ymin)/(ceil((ymax - ymin)/ds_x));
-slr = ymin:ds_y:ymax;
+ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
+slr = ymin+ds_y/2:ds_y:ymax-ds_y/2;
 slr = slr';
 
 % Define coordinates on each wall (y1, y2)
@@ -82,6 +82,7 @@ ep_d = ep*ep_d_factor;
 
 beta_value = Da*ep*C;
 idx = find(-perm_factor*Lx<y1 & y1<perm_factor*Lx);
+solidI = find(y1 == xmin | y1 == xmax);
 beta = zeros(length(y1),1);
 beta(idx) = beta_value; %beta is nonzero where permeable 
 
