@@ -1,10 +1,4 @@
 
-%Example 3 of Cortez, Fluids 2021
-%Channel with inflow and part of membrane permeable
-
-%Developed by Ricardo Cortez, Brittany Leathers, and Michaela Kubacki
-%July 2024
-
 
 clear all 
 % close all
@@ -14,7 +8,7 @@ clear all
 %setting the viscosity
 mu = 1; 
 % Nvals=10*2.^(0:5);
-Nvals=[10 20 40 80 100 160 240 320 500];
+Nvals=[10 20 40 80 100 160 240];
 %number of points on boundary where velocity is set and force is computed 
 
 
@@ -37,7 +31,8 @@ ymax = ymin + Ly;
 % epsvals=[epsvals (0.05:0.03:0.2) 0.25 0.4 0.5 0.6];
 % epsvals=sort(epsvals);
 
-epsvals=[0.003:0.001:0.015, 0.015:0.002:0.1 0.1:0.002:0.4];
+epsvals=0.0001*2.^(0:14);
+% epsvals=[0.003:0.001:0.015, 0.015:0.002:0.1 0.1:0.002:0.4];
 
 % nearpointoptions=[0.001 0.005 0.01 0.05 0.1];
 
@@ -223,26 +218,29 @@ end
 
 %% Plot error
 
+%%% Note: edited to now look for k2 kind of 
+
+
 colorp=[0.4940, 0.1840, 0.5560];
 colorlb=[0.3010, 0.6450, 0.9930];
 colorg=[0.4660, 0.6740, 0.1880];
 colordb=	[0, 0.4470, 0.7410];
 
 forploty0=0.0001;
-forplotdx0=1000;
-dxforplot=epsvals;
+forplotdx0=0.1;
+dxforplot=1./Nvals;
 yforplot=20*forploty0/forplotdx0^1.*dxforplot.^(2);
 forploty02=20;
 forplotdx02=10;
-dxforplot2=epsvals;
-yforplot2=forploty02/forplotdx02^2*dxforplot2.^(3/2);
+dxforplot2=1./Nvals;
+yforplot2=forploty02/forplotdx02^2*dxforplot2.^(2);
 figure;
 
 
-   for i=1:length(Nvals)
-
+   for i=7:10%1:length(epsvals)
+epsvals(i)
    %Refinement study plots
-   loglog(epsvals, eu_pointaway(i,:),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+   loglog(Nvals, eumaxnorm_away(:,i).*epsvals(i).^2,'o-', 'LineWidth', 2.5, 'MarkerSize', ...
        10)
     hold on
 % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
@@ -253,11 +251,12 @@ figure;
 %     'Interpreter', 'latex');
 %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
    end
-loglog(epsvals, yforplot, 'LineWidth', 2,'Color', 'k')
+loglog(Nvals, yforplot, 'LineWidth', 2,'Color', 'k')
+% loglog(Nvals, yforplot2, 'LineWidth', 2,'Color', 'k')
 text(10^(-1),0.01,'$\epsilon$', 'Color', 'k', 'FontSize', 14, ...
     'Interpreter', 'latex');
 hold off;
-% axis([10^(-6) 10^0 10^(-4) 10^(0) ]);
+axis([10 300 10^(-8) 10^(-2) ]);
 set(gca, 'FontSize', 17);
 legend(sprintf('$N=%d$', Nvals(1)), sprintf('$N=%d$', Nvals(2)),...
 sprintf('$N=%d$', Nvals(3)), sprintf('$N=%d$', Nvals(4)),...
@@ -273,4 +272,51 @@ title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
 %$||e||_{\infty}$
 
 
+
+%%  E/ ds ^k2 vs eps
+
+forploty0=0.0001;
+forplotdx0=0.001;
+dxforplot=epsvals;
+yforplot=20*forploty0/forplotdx0^1.*dxforplot.^(2);
+forploty02=20;
+forplotdx02=10;
+dxforplot2=1./Nvals;
+yforplot2=forploty02/forplotdx02^2*dxforplot2.^(2);
+figure;
+
+
+for i=1:length(Nvals)
+    
+    %Refinement study plots
+    loglog(1./epsvals, eumaxnorm_away(i,:).*Nvals(i).^4,'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+        10)
+    hold on
+    % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
+    % loglog(Nyvals, e1u, 'd-', 'LineWidth', 2.5,'MarkerSize', 10,'Color', colorp);
+
+    % loglog(epsvals, yforplot2, 'LineWidth', 2,'Color', 'b')
+    % text(200,1.6/1000000,'$1/N^2$', 'Color', colorg, 'FontSize', 14, ...
+    %     'Interpreter', 'latex');
+    %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
+end
+loglog(1./epsvals, yforplot, 'LineWidth', 2,'Color', 'k')
+% loglog(Nvals, yforplot2, 'LineWidth', 2,'Color', 'k')
+text(10^(-1),0.01,'$\epsilon$', 'Color', 'k', 'FontSize', 14, ...
+    'Interpreter', 'latex');
+hold off;
+% axis([10 300 10^(-8) 10^(-2) ]);
+set(gca, 'FontSize', 17);
+legend(sprintf('$N=%d$', Nvals(1)), sprintf('$N=%d$', Nvals(2)),...
+    sprintf('$N=%d$', Nvals(3)), sprintf('$N=%d$', Nvals(4)),...
+    sprintf('$N=%d$', Nvals(5)),sprintf('$N=%d$', Nvals(6)),...
+    sprintf('$N=%d$', Nvals(7)),sprintf('$N=%d$', Nvals(8)),...
+    sprintf('$N=%d$', Nvals(9)),...
+    'Interpreter','latex', 'FontSize', 20);
+xlabel('$\epsilon$', 'FontSize', 18,'Interpreter','latex')
+ylabel('$||e||_{\infty}$', 'FontSize', 17,'Interpreter','latex')
+title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
+    'FontSize', 18,'Interpreter','latex')  
+% yticks([10^(-5) 10^(-3) 10^(0)])
+%$||e||_{\infty}$
 

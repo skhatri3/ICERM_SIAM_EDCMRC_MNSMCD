@@ -11,15 +11,13 @@ mu = 1;
 % Nvals=[8 10 15 20 25 30 35 40 45];
 Nvals=[200 220 240 260 280 300 320]
 Nvals=[100 110 120 130 135 140 145 150 155 160];
-Nvals=[30 34 38 42 46 50]
-Nvals=[10 20 40 80 100 130 160 190 240 270 300]
+% Nvals=[30 50]
 %number of points on boundary where velocity is set and force is computed 
 
 %Regularization parameter
 ep=0.006;
 ep=0.013;
-ep=0.037;
-ep=0.01;
+% ep=0.037;
 
 
 %blob choice
@@ -218,7 +216,7 @@ colorg=[0.4660, 0.6740, 0.1880];
 colordb=	[0, 0.4470, 0.7410];
 
 forploty0=0.1;
-forplotdx0=0.00000001;
+forplotdx0=0.0000000001;
 dxforplot=Nvals;
 yforplot=20*forploty0/forplotdx0^1./dxforplot.^(6);
 
@@ -229,7 +227,7 @@ nNs=length(Nvals);
 
 
    %Refinement study plots
-   loglog(Nvals(1:nNs), eumaxnorm_away(1:nNs),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+   loglog(Nvals(1:nNs), eumaxnorm_aw(1:nNs),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
        10)
     hold on
 % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
@@ -255,7 +253,7 @@ set(gca, 'FontSize', 17);
 %     'Interpreter','latex', 'FontSize', 11);
 xlabel('$N$', 'FontSize', 18,'Interpreter','latex')
 ylabel('$||e||_{\infty}$', 'FontSize', 17,'Interpreter','latex')
-title('Non-permeable channel: Error grid away',...
+title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
     'FontSize', 18,'Interpreter','latex')  
 % yticks([10^(-5) 10^(-3) 10^(0)])
 %$||e||_{\infty}$

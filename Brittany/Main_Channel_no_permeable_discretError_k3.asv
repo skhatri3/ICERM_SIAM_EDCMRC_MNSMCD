@@ -8,18 +8,8 @@ clear all
 %setting the viscosity
 mu = 1; 
 % Nvals=10*2.^(0:5);
-% Nvals=[8 10 15 20 25 30 35 40 45];
-Nvals=[200 220 240 260 280 300 320]
-Nvals=[100 110 120 130 135 140 145 150 155 160];
-Nvals=[30 34 38 42 46 50]
-Nvals=[10 20 40 80 100 130 160 190 240 270 300]
+Nvals=[10 20 40 80 100 160 240];
 %number of points on boundary where velocity is set and force is computed 
-
-%Regularization parameter
-ep=0.006;
-ep=0.013;
-ep=0.037;
-ep=0.01;
 
 
 %blob choice
@@ -36,13 +26,22 @@ xmax = xmin + Lx;
 ymin = 0;
 ymax = ymin + Ly;
 
+%Regularization parameter
+% epsvals=0.00001*2.^(0:16);
+% epsvals=[epsvals (0.05:0.03:0.2) 0.25 0.4 0.5 0.6];
+% epsvals=sort(epsvals);
 
-eumaxnorm_away=zeros(length(Nvals));
-eu2norm_away=zeros(length(Nvals));
-eumaxnorm_near=zeros(length(Nvals));
-eu2norm_near=zeros(length(Nvals));
-eu_pointaway=zeros(length(Nvals));
+epsvals=0.0001*2.^(0:14);
+% epsvals=[0.003:0.001:0.015, 0.015:0.002:0.1 0.1:0.002:0.4];
 
+% nearpointoptions=[0.001 0.005 0.01 0.05 0.1];
+
+eumaxnorm_away=zeros(length(Nvals), length(epsvals));
+eu2norm_away=zeros(length(Nvals), length(epsvals));
+eumaxnorm_near=zeros(length(Nvals), length(epsvals));
+eu2norm_near=zeros(length(Nvals), length(epsvals));
+eu_pointaway=zeros(length(Nvals), length(epsvals));
+% eu_pointnear=zeros(length(Nvals), length(epsvals), length(nearpointoptions));
 
 %% Loop through Nvals
 
@@ -55,10 +54,13 @@ for i=1:length(Nvals)
 ds = (ymax-ymin)/N;
 ds_x=ds; ds_y=ds;
 
+%% Loop through epsilon values
 
-% for j=1:length(epsvals)
+for j=1:length(epsvals)
 
-
+    %Regularization parameter
+    ep=epsvals(j);
+   
 
 %discretization of top and bottom:
 s = ds/2:ds:xmax-ds/2;
@@ -144,8 +146,8 @@ vg_away=reshape(Ugrid(:,2), Nx_away, Ny_away);
 
 u_soln_away=a*(yg_away/Ly.*(1-yg_away/Ly));
 uerror_away=abs(ug_away-u_soln_away);
-eumaxnorm_away(i)=max(uerror_away(:));
-eu2norm_away(i)=sqrt(dx_away^2*sum(sum(uerror_away.^2)));
+eumaxnorm_away(i,j)=max(uerror_away(:));
+eu2norm_away(i,j)=sqrt(dx_away^2*sum(sum(uerror_away.^2)));
 % 
 %calculate on grid including near the boundary
 xmin_near=2;
@@ -169,8 +171,8 @@ vg_near=reshape(Ugrid(:,2), Nx_near, Ny_near);
 
 u_soln_near=a*(yg_near/Ly.*(1-yg_near/Ly));
 uerror_near=abs(ug_near-u_soln_near);
-eumaxnorm_near(i)=max(uerror_near(:));
-eu2norm_near(i)=sqrt(dx_near^2*sum(sum(uerror_near.^2)));
+eumaxnorm_near(i,j)=max(uerror_near(:));
+eu2norm_near(i,j)=sqrt(dx_near^2*sum(sum(uerror_near.^2)));
 
 
 %Find solution at single point away from boundary and single point near
@@ -178,7 +180,7 @@ eu2norm_near(i)=sqrt(dx_near^2*sum(sum(uerror_near.^2)));
 %Away: (2,1/2)
 uaway=RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],[2 0.5],ep,mu,...
     blob, wt);
-eu_pointaway(i)=abs(uaway(:,1)-a*(0.5/Ly.*(1-0.5/Ly)));
+eu_pointaway(i,j)=abs(uaway(:,1)-a*(0.5/Ly.*(1-0.5/Ly)));
 
 % %Near: 
 % for k=1:length(nearpointoptions)
@@ -196,7 +198,11 @@ eu_pointaway(i)=abs(uaway(:,1)-a*(0.5/Ly.*(1-0.5/Ly)));
 % end
 
 end
+
+end
+
 %%
+
 % clear all
 % 
 % Data=open('Error_eps_no_perm.mat');
@@ -212,24 +218,29 @@ end
 
 %% Plot error
 
+%%% Note: edited to now look for k2 kind of 
+
+
 colorp=[0.4940, 0.1840, 0.5560];
 colorlb=[0.3010, 0.6450, 0.9930];
 colorg=[0.4660, 0.6740, 0.1880];
 colordb=	[0, 0.4470, 0.7410];
 
-forploty0=0.1;
-forplotdx0=0.00000001;
-dxforplot=Nvals;
-yforplot=20*forploty0/forplotdx0^1./dxforplot.^(6);
-
-
-
+forploty0=0.0001;
+forplotdx0=0.1;
+dxforplot=1./Nvals;
+yforplot=20*forploty0/forplotdx0^1.*dxforplot.^(2);
+forploty02=20;
+forplotdx02=10;
+dxforplot2=1./Nvals;
+yforplot2=forploty02/forplotdx02^2*dxforplot2.^(2);
 figure;
-nNs=length(Nvals);
 
 
+   for i=7:10%1:length(epsvals)
+epsvals(i)
    %Refinement study plots
-   loglog(Nvals(1:nNs), eumaxnorm_away(1:nNs),'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+   loglog(Nvals, eumaxnorm_away(:,i).*epsvals(i).^2,'o-', 'LineWidth', 2.5, 'MarkerSize', ...
        10)
     hold on
 % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
@@ -239,26 +250,73 @@ nNs=length(Nvals);
 % text(200,1.6/1000000,'$1/N^2$', 'Color', colorg, 'FontSize', 14, ...
 %     'Interpreter', 'latex');
 %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
-
-loglog(Nvals(1:nNs), yforplot(1:nNs), 'LineWidth', 2,'Color', 'k')
-text(10^(-1),0.01,'$\Delta s$', 'Color', 'k', 'FontSize', 14, ...
+   end
+loglog(Nvals, yforplot, 'LineWidth', 2,'Color', 'k')
+% loglog(Nvals, yforplot2, 'LineWidth', 2,'Color', 'k')
+text(10^(-1),0.01,'$\epsilon$', 'Color', 'k', 'FontSize', 14, ...
     'Interpreter', 'latex');
 hold off;
-% axis([10^(-6) 10^0 10^(-4) 10^(0) ]);
+axis([10 300 10^(-8) 10^(-2) ]);
 set(gca, 'FontSize', 17);
-% legend(sprintf('$N=%d$', epsvals(1)), sprintf('$N=%d$', epsvals(2)),...
-% sprintf('$N=%d$', epsvals(3)), sprintf('$N=%d$', epsvals(4)),...
-%    sprintf('$N=%d$', epsvals(5)),sprintf('$N=%d$', epsvals(6)),...
-%    sprintf('$N=%d$', epsvals(7)),sprintf('$N=%d$', epsvals(8)),...
-%    sprintf('$N=%d$', epsvals(9)),sprintf('$N=%d$', epsvals(10)),...
-%    sprintf('$N=%d$', epsvals(11)),sprintf('$N=%d$', epsvals(12)),...
-%     'Interpreter','latex', 'FontSize', 11);
-xlabel('$N$', 'FontSize', 18,'Interpreter','latex')
+legend(sprintf('$N=%d$', Nvals(1)), sprintf('$N=%d$', Nvals(2)),...
+sprintf('$N=%d$', Nvals(3)), sprintf('$N=%d$', Nvals(4)),...
+   sprintf('$N=%d$', Nvals(5)),sprintf('$N=%d$', Nvals(6)),...
+   sprintf('$N=%d$', Nvals(7)),sprintf('$N=%d$', Nvals(8)),...
+   sprintf('$N=%d$', Nvals(9)),...
+    'Interpreter','latex', 'FontSize', 20);
+xlabel('$\epsilon$', 'FontSize', 18,'Interpreter','latex')
 ylabel('$||e||_{\infty}$', 'FontSize', 17,'Interpreter','latex')
-title('Non-permeable channel: Error grid away',...
+title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
     'FontSize', 18,'Interpreter','latex')  
 % yticks([10^(-5) 10^(-3) 10^(0)])
 %$||e||_{\infty}$
 
 
+
+%%  E/ ds ^k2 vs eps
+
+forploty0=0.0001;
+forplotdx0=0.1;
+dxforplot=epsvals;
+yforplot=20*forploty0/forplotdx0^1.*dxforplot.^(2);
+forploty02=20;
+forplotdx02=10;
+dxforplot2=1./Nvals;
+yforplot2=forploty02/forplotdx02^2*dxforplot2.^(2);
+figure;
+
+
+for i=1:lenght(Nvals)
+    epsvals(i)
+    %Refinement study plots
+    loglog(Nvals, eumaxnorm_away(i,:).*Nvals(i).^2,'o-', 'LineWidth', 2.5, 'MarkerSize', ...
+        10)
+    hold on
+    % loglog(Nyvals, e2u, 's-', 'LineWidth', 2.5,'MarkerSize', 10, 'Color', colordb);
+    % loglog(Nyvals, e1u, 'd-', 'LineWidth', 2.5,'MarkerSize', 10,'Color', colorp);
+
+    % loglog(epsvals, yforplot2, 'LineWidth', 2,'Color', 'b')
+    % text(200,1.6/1000000,'$1/N^2$', 'Color', colorg, 'FontSize', 14, ...
+    %     'Interpreter', 'latex');
+    %legend('u', 'u away from boundary','u near boundary', 'FontSize', 12);
+end
+loglog(Nvals, yforplot, 'LineWidth', 2,'Color', 'k')
+% loglog(Nvals, yforplot2, 'LineWidth', 2,'Color', 'k')
+text(10^(-1),0.01,'$\epsilon$', 'Color', 'k', 'FontSize', 14, ...
+    'Interpreter', 'latex');
+hold off;
+axis([10 300 10^(-8) 10^(-2) ]);
+set(gca, 'FontSize', 17);
+legend(sprintf('$N=%d$', Nvals(1)), sprintf('$N=%d$', Nvals(2)),...
+    sprintf('$N=%d$', Nvals(3)), sprintf('$N=%d$', Nvals(4)),...
+    sprintf('$N=%d$', Nvals(5)),sprintf('$N=%d$', Nvals(6)),...
+    sprintf('$N=%d$', Nvals(7)),sprintf('$N=%d$', Nvals(8)),...
+    sprintf('$N=%d$', Nvals(9)),...
+    'Interpreter','latex', 'FontSize', 20);
+xlabel('$\epsilon$', 'FontSize', 18,'Interpreter','latex')
+ylabel('$||e||_{\infty}$', 'FontSize', 17,'Interpreter','latex')
+title('Non-permeable channel: Error on grid $[0.45, 0.55]\times [2,3]$',...
+    'FontSize', 18,'Interpreter','latex')  
+% yticks([10^(-5) 10^(-3) 10^(0)])
+%$||e||_{\infty}$
 
