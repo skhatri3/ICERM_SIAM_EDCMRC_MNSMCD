@@ -56,9 +56,9 @@ R = sqrt( R2 );
 [H1, H2, ~, ~] = reg_fncs_withdoublet(ep, R, blob_num); 
 
 % Stokeslet Matrix
-M11 = (H1 + H2.*XY1.*XY1).*wt';  
-M22 = (H1 + H2.*XY2.*XY2).*wt'; 
-M12 = (H2.*XY1.*XY2).*wt'; % Note that M21 = M12
+M11 = (H1 + H2.*XY1.*XY1).*(ones(M,1)*wt');  
+M22 = (H1 + H2.*XY2.*XY2).*(ones(M,1)*wt'); 
+M12 = (H2.*XY1.*XY2).*(ones(M,1)*wt'); % Note that M21 = M12
 
 
 % Assemble Stokeslet matrix and rescale

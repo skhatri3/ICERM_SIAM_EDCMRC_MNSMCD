@@ -1,8 +1,6 @@
 clear all
 close all
 
-addpath('./stokeslets_codes'); 
-
 %% Parameters to set
 
 % Model Parameters
@@ -24,8 +22,8 @@ perm_factor=1;  % will make permeable section  -factor*Lx < x < factor*Lx
 blob_num = 2; % blob choice
 ep_factor = 3; 
 ep_d_factor = 2; 
-%C = 0.04*5.75; % constant for beta_value; 
-C = 0.04*2.75; %constant for beta_value when V = 0 (velocity for Step 1 permeable) 
+C = 0.04*8; % constant for beta_value; 
+%C = 0.04*2.825; %constant for beta_value when V = 0 (velocity for Step 1 permeable) 
 
 % number of source and target points
 N = 160; % Number of source points (along top  and bottom boundaries)
@@ -37,14 +35,14 @@ Nx1 = floor(pi*Nx2); % Number of target points in x direction for full channel c
 
 % top and bottom
 ds_x = (xmax - xmin)/N;
-stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
-%stb = xmin:ds_x:xmax; 
+%stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
+stb = xmin:ds_x:xmax; 
 stb = stb';
 
 % left and right
 ds_y = (ymax - ymin)/(ceil((ymax - ymin)/ds_x));
 %slr = ymin+ds_y/2:ds_y:ymax-ds_y/2;
-slr = ymin:ds_y:ymax;
+slr = ymin+ds_y:ds_y:ymax-ds_y;
 slr = slr';
 
 % Define coordinates on each wall (y1, y2)
@@ -72,9 +70,9 @@ normals = [normals_top; normals_bot; normals_left; normals_right];
 normals_tb = [normals_top; normals_bot];
 
 % Define weights cooresponding to wall coordinates
-%wt = [ds_x/2; ds_x*ones(length(y1_top)-2,1); ds_x/2; ds_x/2; ds_x*ones(length(y1_bot)-2,1); ds_x/2;  ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
+wt = [ds_x/2; ds_x*ones(length(y1_top)-2,1); ds_x/2; ds_x/2; ds_x*ones(length(y1_bot)-2,1); ds_x/2;  ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
 %%wt = [ds_x; ds_x*ones(length(y1_top)-2,1); ds_x; ds_x; ds_x*ones(length(y1_bot)-2,1); ds_x;  ds_y*ones(size(y1_left)); ds_y*ones(size(y1_right))];
-wt = [ds_x*ones(length(y1_top),1); ds_x*ones(length(y1_bot),1); ds_y/2; ds_y*ones(length(y1_left)-2,1); ds_y/2; ds_y/2; ds_y*ones(length(y1_right)-2,1); ds_y/2];  
+%wt = [ds_x*ones(length(y1_top),1); ds_x*ones(length(y1_bot),1); ds_y/2; ds_y*ones(length(y1_left)-2,1); ds_y/2; ds_y/2; ds_y*ones(length(y1_right)-2,1); ds_y/2];  
 
 % Define blob size based on wall discretization 
 ep = ds_y*ep_factor;
@@ -83,8 +81,8 @@ ep_d =ep*ep_d_factor;
 %% Setting up permeable region (where the boundary velocity is unknown)
 
 beta_value = Da*ep*C;
-idx = find(-perm_factor*Lx<y1 & y1<perm_factor*Lx);
-%idx = find(y2 == ymin | y2 == ymax); 
+%idx = find(-perm_factor*Lx<y1 & y1<perm_factor*Lx);
+idx = find(y2 == ymin | y2 == ymax); 
 %solidI = find(y1 == xmin | y1 == xmax);
 beta = zeros(length(y1),1);
 beta(idx) = beta_value; %beta is nonzero where permeable 
@@ -167,8 +165,8 @@ plot_streamline(u1m,u2m,x1gg,x2gg,uexact,vexact,y1,y2,'MRS - Stokeslets Only')
 u1 = u1_bd_exact; %x-coordinates of all boundary velocities
 u2 = u2_bd_exact; %y-coordinates of all boundary velocities
 u1(idx) = 0; 
-u2(idx) = 0; 
-%u2(idx) = -u2_corner_exact.*y1(idx).*sign(y2(idx))./pi;
+%u2(idx) = 0; 
+u2(idx) = -u2_corner_exact.*y1(idx).*sign(y2(idx))./pi;
 
 
 % STEP 1: Find g-force distribution due to St+SD on solid walls and SD (no
@@ -176,7 +174,8 @@ u2(idx) = 0;
 
 %[g] = RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
 %    [u1,u2], ep, mu, blob_num, idx, beta, normals, wt);
-[g] = RegStokeslets2D_velocityto_gforce_SK([y1,y2],[y1,y2],[u1,u2],ep,ep_d,mu,blob_num, idx, beta, normals, wt); 
+[g] = RegStokeslets2D_velocityto_gforce_permeable_diff_ep([y1,y2],[y1,y2],...
+     [u1,u2],ep,ep_d,mu,blob_num, idx, beta, normals, wt); 
 g1 = g(:,1);
 g2 = g(:,2);
 

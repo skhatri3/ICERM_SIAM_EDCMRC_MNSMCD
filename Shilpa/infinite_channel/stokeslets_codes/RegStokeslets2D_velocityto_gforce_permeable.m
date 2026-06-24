@@ -73,19 +73,19 @@ R = sqrt( R2 );
 [H1, H2, S1, S2, ~] = reg_fncs_withdoublet(ep, R, blob_num); 
 
 % Stokeslet Matrix
-M11 = (H1 + H2.*XY1.*XY1).*wt; 
-M22 = (H1 + H2.*XY2.*XY2).*wt; 
-M12 = (H2.*XY1.*XY2).*wt; % Note that M21 = M12
+M11 = (H1 + H2.*XY1.*XY1).*(ones(M,1)*wt'); 
+M22 = (H1 + H2.*XY2.*XY2).*(ones(M,1)*wt'); 
+M12 = (H2.*XY1.*XY2).*(ones(M,1)*wt'); % Note that M21 = M12
 
 % Assemble Stokeslet matrix and rescale
 Mat = [M11 M12; M12 M22]/(mu); 
 
 % Doublet Matrix
 NormXY = Norm1.*XY1 + Norm2.*XY2;
-D11 = -Beta.*Norm1 .* (S1.*Norm1+S2.*NormXY.*XY1) .*wt;
-D12 = -Beta.*Norm2 .* (S1.*Norm1+S2.*NormXY.*XY1) .*wt;
-D21 = -Beta.*Norm1 .* (S1.*Norm2+S2.*NormXY.*XY2) .*wt;
-D22 = -Beta.*Norm2 .* (S1.*Norm2+S2.*NormXY.*XY2) .*wt;
+D11 = -Beta.*Norm1 .* (S1.*Norm1+S2.*NormXY.*XY1) .*(ones(M,1)*wt');
+D12 = -Beta.*Norm2 .* (S1.*Norm1+S2.*NormXY.*XY1) .*(ones(M,1)*wt');
+D21 = -Beta.*Norm1 .* (S1.*Norm2+S2.*NormXY.*XY2) .*(ones(M,1)*wt');
+D22 = -Beta.*Norm2 .* (S1.*Norm2+S2.*NormXY.*XY2) .*(ones(M,1)*wt');
 
 % Assemble Double matrix and rescale
 D = [D11 D12; D21 D22]/(mu);

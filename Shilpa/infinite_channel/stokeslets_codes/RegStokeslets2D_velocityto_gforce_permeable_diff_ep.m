@@ -70,9 +70,9 @@ R2 = sqrt( Rsq2 );
 [~, ~, S1, S2, ~] = reg_fncs_withdoublet(ep2, R2, blob_num); %MxN
 
 %Stokeslet part
-M11 = (H1 + H2.*XY1.*XY1).*wt; 
-M22 = (H1 + H2.*XY2.*XY2).*wt; 
-M12 = (H2.*XY1.*XY2).*wt; 
+M11 = (H1 + H2.*XY1.*XY1).*(ones(M,1)*wt'); 
+M22 = (H1 + H2.*XY2.*XY2).*(ones(M,1)*wt'); 
+M12 = (H2.*XY1.*XY2).*(ones(M,1)*wt'); 
 %M21 = H2.*XY2.*XY1; 
 
 Mat = [M11 M12; M12 M22]/(mu);
@@ -80,10 +80,10 @@ Mat = [M11 M12; M12 M22]/(mu);
 
 %Doublet part
 NormXY=Norm1.*XY1+Norm2.*XY2;
-D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1).*wt;
-D12=-Beta.*Norm2.*(S2.*NormXY.*XY1).*wt;
-D21=-Beta.*Norm1.*(S2.*NormXY.*XY2).*wt;
-D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2).*wt;
+D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1).*(ones(M,1)*wt');
+D12=-Beta.*Norm2.*(S2.*NormXY.*XY1).*(ones(M,1)*wt');
+D21=-Beta.*Norm1.*(S2.*NormXY.*XY2).*(ones(M,1)*wt');
+D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2).*(ones(M,1)*wt');
 
 % Asssemble Doublet Matrix and Rescale
 D=[D11 D12; D21 D22]/(mu);
