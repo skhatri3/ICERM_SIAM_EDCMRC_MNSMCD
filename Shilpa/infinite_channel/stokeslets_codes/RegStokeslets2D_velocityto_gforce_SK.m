@@ -1,5 +1,5 @@
-function [g] = RegStokeslets2D_velocityto_gforce_permeable_2eps(y,...
-    x,u,ep1,ep2,mu,blob_num, I, beta, normal, wt)
+function [g] = RegStokeslets2D_velocityto_gforce_SK(y,...
+    x,u,ep1,ep2,mu,blob_num, I, beta, normal,wt)
 
 
 % Computes intermediate "g" forces for permeable membrane 
@@ -15,8 +15,8 @@ function [g] = RegStokeslets2D_velocityto_gforce_permeable_2eps(y,...
 %x = (x1,x2) target points 
 %u = (u1,u2) velocity at those target points 
 %mu is the viscosity 
-%ep is the width of the regularization (ep1 for stokeslet part, ep2 for
-%doublet part)
+%ep1 is the width of the regularization for stokeslet
+%ep2 is the width of the regularization for source doublet
 %I: Indices of x (target) rows that correspond to Gamma_beta, the permeable region
 %Beta gives the permeability coefficient for all source points., Nx1
     %beta(i) should be 0 if it is not a permeable section
@@ -60,48 +60,47 @@ for k = 1:N
    
 end
 
+Rsq1 = XY1.^2 + XY2.^2 + ep1^2; 
+R1 = sqrt( Rsq1 ); 
 
-%For Stokeslet part
-R2_1 = XY1.^2 + XY2.^2 + ep1^2; 
-R_1 = sqrt( R2_1 ); 
-[H1_1, H2_1, S1_1, S2_1] = reg_fncs_withdoublet(ep1, R_1, blob_num); %MxN
+Rsq2 = XY1.^2 + XY2.^2 + ep2^2; 
+R2 = sqrt( Rsq2 ); 
 
-%for doublet part
-R2_2 = XY1.^2 + XY2.^2 + ep2^2; 
-R_2 = sqrt( R2_2 ); 
-[H1_2, H2_2, S1_2, S2_2] = reg_fncs_withdoublet(ep2, R_2, blob_num); %MxN
-
+[H1, H2, ~, ~, ~] = reg_fncs_withdoublet(ep1, R1, blob_num); %MxN
+[~, ~, S1, S2, ~] = reg_fncs_withdoublet(ep2, R2, blob_num); %MxN
 
 %Stokeslet part
-M11 = (H1_1 + H2_1.*XY1.*XY1).*wt; 
-M22 = (H1_1 + H2_1.*XY2.*XY2).*wt; 
-M12 = (H2_1.*XY1.*XY2).*wt; 
-%M21 = H2.*XY2.*XY1; 
-
-Mat = [M11 M12; M12 M22]/(mu);
+Mat = stokeslet_matrix(y,x,ep1,mu,blob_num,wt);
 
 
 %Doublet part
-% S1(S1(:)==-Inf|S1(:)==Inf)=0;
-% S2(S2(:)==-Inf|S2(:)==Inf)=0;
 NormXY=Norm1.*XY1+Norm2.*XY2;
-D11=-Beta.*Norm1.*(S1_2.*Norm1+S2_2.*NormXY.*XY1).*wt;
-D12=-Beta.*Norm2.*(S1_2.*Norm1+S2_2.*NormXY.*XY1).*wt;
-D21=-Beta.*Norm1.*(S1_2.*Norm2+S2_2.*NormXY.*XY2).*wt;
-D22=-Beta.*Norm2.*(S1_2.*Norm2+S2_2.*NormXY.*XY2).*wt;
+D11=-Beta.*Norm1.*(S1.*Norm1+S2.*NormXY.*XY1).*(ones(M,1)*wt');
+D12=-Beta.*Norm2.*(S2.*NormXY.*XY1).*(ones(M,1)*wt');
+D21=-Beta.*Norm1.*(S2.*NormXY.*XY2).*(ones(M,1)*wt');
+D22=-Beta.*Norm2.*(S1.*Norm2+S2.*NormXY.*XY2).*(ones(M,1)*wt');
+
+% Asssemble Doublet Matrix and Rescale
 D=[D11 D12; D21 D22]/(mu);
 
+% Zero out rows that are for target points on permeable membrane
+D(I,:)=zeros(length(I),length(D(1,:))); % u1 component
+D(I+M,:)=zeros(length(I), length(D(1,:))); % u2 component
 
-%zero out rows that are for target points on permeable membrane
-D(I,:)=zeros(length(I),length(D(1,:)));
-D(I+M,:)=zeros(length(I), length(D(1,:)));
+% Conditioning check
+disp(['log10 of condition number of Mat+D: ', num2str(log10(condest(Mat+D)))])
+disp(['condition number of Mat+D: ', num2str(condest(Mat+D))])
+disp(['size of Mat+D: ', num2str(size(Mat+D))])
+log10cond = log10(condest(Mat+D));
+if log10cond >= 8
+    disp(['Warning: High condition number. Losing roughly ', num2str(log10cond), ' digits of accuracy.'])
+end
 
-%solving for force when given a velocity 
+% Solving for force when given a velocity 
 uu = [u1;u2];
 gg = (Mat+D)\uu; 
 g1 = gg(1:N); 
 g2 = gg(N+1:end); 
 
-%repacking output 
+% repacking output 
 g = [g1,g2]; 
-

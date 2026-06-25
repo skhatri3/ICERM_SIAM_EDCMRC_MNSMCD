@@ -1,5 +1,5 @@
 function [u_beta] = RegStokeslets2D_gtovelocity_2eps(y,g,...
-    x,ep1, ep2,mu,blob_num, beta, normal)
+    x,ep1, ep2,mu,blob_num, beta, normal, wt)
 
 % Computes velocities on permeable membrane from intermediate force g
 % using the Method of Regularized Stokeslets 
@@ -59,11 +59,11 @@ for k = 1:N
     
     normxy=norm1*XY1+norm2*XY2;
 
-    u1(:)=u1(:)-beta(k)*norm1*(S1_2.*norm1+S2_2.*normxy.*XY1)*g1(k)+...
-        -beta(k)*norm2*(S2_2.*normxy.*XY1)*g2(k);
+    u1(:)=u1(:)-(beta(k)*norm1*(S1_2.*norm1+S2_2.*normxy.*XY1)*g1(k)+...
+        -beta(k)*norm2*(S2_2.*normxy.*XY1)*g2(k))*wt(k);
 
-    u2(:)=u2(:)-beta(k)*norm2*(S1_2.*norm2+S2_2.*normxy.*XY2)*g2(k)+...
-        -beta(k)*norm1*(S2_2.*normxy.*XY2)*g1(k);    
+    u2(:)=u2(:)-(beta(k)*norm2*(S1_2.*norm2+S2_2.*normxy.*XY2)*g2(k)+...
+        -beta(k)*norm1*(S2_2.*normxy.*XY2)*g1(k))*wt(k);    
 
 
 end
