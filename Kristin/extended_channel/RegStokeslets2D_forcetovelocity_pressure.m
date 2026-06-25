@@ -1,4 +1,4 @@
-function [u] = RegStokeslets2D_forcetovelocity(y,f,x,ep,mu,blob_num,wt)
+function [p] = RegStokeslets2D_forcetovelocity_pressure(y,f,x,ep,mu,blob_num,normal,wt)
 
 % Computes velocities at set of points when given a set of points and
 % forces at those points using the Method of Regularized Stokeslets 
@@ -13,7 +13,7 @@ function [u] = RegStokeslets2D_forcetovelocity(y,f,x,ep,mu,blob_num,wt)
 %
 % Inputs
 %       y = (y1,y2) source points
-%       f = (f1,f2) forces at those source points 
+%       f = (f1,f2) forces at those source points (force density)
 %       x = (x1,x2) target points 
 %       u = (u1,u2) velocity evaluated at those target points 
 %       mu = viscosity 
@@ -33,8 +33,9 @@ x1 = x(:,1);
 x2 = x(:,2); 
 
 % initializing the velocity 
-u1 = zeros(M,1);
-u2 = zeros(M,1);
+%u1 = zeros(M,1);
+%u2 = zeros(M,1);
+p = zeros(M,1);
 
 % loop over source points    
 for k = 1:N 
@@ -46,20 +47,24 @@ for k = 1:N
     R = sqrt( R2 ); 
 
     % computing the velocity 
-    [H1, H2, ~, ~] = reg_fncs_withdoublet(ep,R,blob_num);
+    [~, ~, S1, ~] = reg_fncs_withdoublet(ep,R,blob_num);
 
-    fdotXY = (f1(k)*XY1 + f2(k)*XY2);
+    norm1=normal(k,1); 
+    norm2=normal(k,2); 
+    
+    normxy=norm1*XY1+norm2*XY2;
 
-    u1(:) = u1(:) + (f1(k)*H1 + fdotXY.*H2.*XY1)*wt(k);  
-    u2(:) = u2(:) + (f2(k)*H1 + fdotXY.*H2.*XY2)*wt(k);
+    fdotn = f1(k)*norm1 + f2(k)*norm2;
+    
+    p(:) = p(:) + fdotn*normxy.*S1*wt(k);
 
 end
 
 % rescaling
-u1 = u1/(mu); 
-u2 = u2/(mu); 
+%u1 = u1/(mu); 
+%u2 = u2/(mu); 
 
 % repacking output 
-u = [u1 u2]; 
+%u = [u1 u2]; 
 
 

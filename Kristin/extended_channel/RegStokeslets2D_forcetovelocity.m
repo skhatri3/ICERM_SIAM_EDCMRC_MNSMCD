@@ -13,7 +13,7 @@ function [u] = RegStokeslets2D_forcetovelocity(y,f,x,ep,mu,blob_num,wt)
 %
 % Inputs
 %       y = (y1,y2) source points
-%       f = (f1,f2) forces at those source points 
+%       f = (f1,f2) forces at those source points (force density)
 %       x = (x1,x2) target points 
 %       u = (u1,u2) velocity evaluated at those target points 
 %       mu = viscosity 
