@@ -1,7 +1,7 @@
-function [u_beta] = RegStokeslets2D_gtovelocity(y,g,...
-    x,ep,mu,blob_num, beta, normal, wt)
+function [p,pst,psd] = RegStokeslets2D_gtopressure_diff_ep(y,g,...
+    x,ep1,ep2,mu,blob_num, beta, normal, wt)
 
-% Computes velocities on permeable membrane (u_beta) from intermediate
+% Computes the pressure on permeable membrane (u_beta) from intermediate
 % force g using the Method of Regularized Stokeslets Based on Cortez, SIAM
 % J. Sci Comput. 2001 and Cortez, Fluids 2021
 
@@ -11,6 +11,10 @@ function [u_beta] = RegStokeslets2D_gtovelocity(y,g,...
 % This function requires access to function reg_funcs_withdoublet.m
 
 % Modified December 2025 to incorporate a quad weight vector.
+
+% ************** NOTE ******************
+% We are not using beta here. Should we be? We are using the
+% Stokeslet pressure formula, with the f(s) = (g(s) dot n(s)) n(s).
 
 % Inputs:
 %       y = (y1,y2) source points 
@@ -36,8 +40,8 @@ x1 = x(:,1);
 x2 = x(:,2); 
 
 % initializing the velocity 
-u1 = zeros(M,1);
-u2 = zeros(M,1); 
+pst = zeros(M,1);
+psd = zeros(M,1);
 
 % loop over source points    
 for k = 1:N 
@@ -46,32 +50,36 @@ for k = 1:N
     XY1 = x1(:) - y1(k); 
     XY2= x2(:) - y2(k);  
     
-    % obtain source double solution pieces 
-    Rsq = XY1.^2 + XY2.^2 + ep^2; 
+    % obtain source double solution pieces
+
+    % Stokeslet Piece
+    Rsq = XY1.^2 + XY2.^2 + ep1^2; 
+    R1= sqrt( Rsq ); 
+
+    [~, ~, S1, ~, ~] = reg_fncs_withdoublet(ep1,R1, blob_num); 
+    
+    % Source Doublet Piece
+    Rsq = XY1.^2 + XY2.^2 + ep2^2; 
     R2= sqrt( Rsq ); 
 
-    [~, ~, S1, S2, ~] = reg_fncs_withdoublet(ep,R2, blob_num); 
-
-    % Calculate u 
+    [~, ~, ~, ~, Q] = reg_fncs_withdoublet(ep2,R2, blob_num);
+    
+    % Calculate p 
     norm1=normal(k,1); 
     norm2=normal(k,2); 
     
-    normxy=norm1*XY1+norm2*XY2;
+    ndotxy=norm1*XY1+norm2*XY2;
+    gdotn = g1(k)*norm1 + g2(k)*norm2;
+    
+    % Stokeslet pressure
+    pst = pst(:) + beta(k)*gdotn*ndotxy.*S1*wt(k);
 
-    u1(:)=u1(:)-(beta(k)*norm1*(S1.*norm1+S2.*normxy.*XY1)*g1(k)+...
-        +beta(k)*norm2*(S2.*normxy.*XY1)*g2(k))*wt(k);
-
-    u2(:)=u2(:)-(beta(k)*norm2*(S1.*norm2+S2.*normxy.*XY2)*g2(k)+...
-        +beta(k)*norm1*(S2.*normxy.*XY2)*g1(k))*wt(k);    
-
+    % Source Doublet Pressure
+    psd = psd(:) - (beta(k)*gdotn)*ndotxy.*Q*wt(k);
+     
 end
 
-% rescaling
-u1 = u1/(mu); 
-u2 = u2/(mu); 
-
-% repacking output 
-u_beta = [u1 u2]; 
+p = pst + psd;
 
 
 
