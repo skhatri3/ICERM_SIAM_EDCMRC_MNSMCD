@@ -1,4 +1,4 @@
-function [p] = RegStokeslets2D_ftopressure(y, f, x, ep, mu, blob_num, wt)
+function [p] = RegStokeslets2D_forcetopressure(y, f, x, ep, mu, blob_num, wt)
 
 % Computes the pressure on permeable from Stokeslet force f
 % using the Method of Regularized Stokeslets Based on Cortez, SIAM
