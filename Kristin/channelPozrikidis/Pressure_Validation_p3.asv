@@ -61,7 +61,7 @@ for n = 1:N_terms
         a_n = (2 / W) * integral_total;
     end
     
-    % Update Fourier Series sum
+    % Update Fourier 
     p_fourier = p_fourier + a_n * cos(lambda_n * x);
 end
 %% 5. Plotting Results
