@@ -4,12 +4,14 @@
 clear; clc; close all;
 
 %% 1. Parameter Definitions
+mu    = 1;
+Da    = 0.3;
 L     = 4; % Length of permeable region
 c     = 2; % Length of extension region
 G     = 1; % Pressure gradient
-alpha = 1; % Related to permeability
-gamma = -G/alpha * sech(alpha*L/2); % Constant from transmural pressure 
 H     = 1;           % Channel radius
+alpha = 3*mu/(H^2*Da); % Related to permeability
+gamma = -G/alpha * sech(alpha*L/2); % Constant from transmural pressure 
 N_terms = 50;        % Number of Fourier terms in the sum
 W = L + 2*c;         % Total domain width [0, W]
 
@@ -65,6 +67,8 @@ for n = 1:N_terms
     p_fourier = p_fourier + a_n * cos(lambda_n * x);
 end
 %% 5. Plotting Results
+% Comparing the plot of p(x,0) to the Fourier series
+
 figure('Color', 'w', 'Position', [100, 100, 900, 500]);
 plot(x, p_exact, 'r-', 'LineWidth', 2.5, 'DisplayName', 'Exact Piecewise p(x,0)');
 hold on;
@@ -93,14 +97,14 @@ set(gca, 'FontSize', 11);
 %
 %       p_x(0,y) = p_x(L+2c,y) = 0, p(x,0) = p(x,2H) = p_T(x)
 
-%% 2. Grid Setup
+%% Grid Setup
 Nx = 200; 
 Ny = 200;
 x = linspace(0, W, Nx);
 y = linspace(0, 2*H, Ny);
 [X, Y] = meshgrid(x, y);
 
-%% 3. Compute Top-Bottom Component: p_tb(x,y) (Overflow-Safe)
+%% Compute Top-Bottom Component: p_tb(x,y) (Overflow-Safe)
 p_tb = zeros(size(X));
 
 for k = 1:N_terms
@@ -119,6 +123,8 @@ for k = 1:N_terms
     
     % Numerically stable vertical ratio (prevents Inf/NaN overflow):
     % Y_profile = (sinh(lambda_n*Y) - sinh(lambda_n*(Y-2H))) / sinh(2*lambda_n*H)
+    % Using exp instead to avoid overflow errors
+
     Y_profile = exp(-lambda_n * (2*H - Y)) + exp(-lambda_n * Y);
     
     p_tb = p_tb + a_n * Y_profile .* cos(lambda_n * X);
@@ -144,7 +150,7 @@ end
 
 p_lr = -(8 * G * H / (pi^2)) * p_lr;
 
-%% 5. Total Pressure Field
+%% 5. Total Pressure 
 P_total = p_lr + p_tb;
 
 
@@ -176,7 +182,3 @@ title('2D Pressure Field Solution p(x,y) with Contour Level Curves', 'FontSize',
 axis equal tight;
 set(gca, 'FontSize', 11, 'Layer', 'top');
 grid on;
-
-%%
-
-
