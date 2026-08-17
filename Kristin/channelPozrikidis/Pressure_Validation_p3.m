@@ -6,7 +6,7 @@ clear; clc; close all;
 %% 1. Parameter Definitions
 L     = 4; % Length of permeable region
 c     = 2; % Length of extension region
-G     = ; % Pressure gradient
+G     = 1; % Pressure gradient
 alpha = 1; % Related to permeability
 gamma = -G/alpha * sech(alpha*L/2); % Constant from transmural pressure 
 H     = 1;           % Channel radius
@@ -166,7 +166,7 @@ xline(c, 'w--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
 xline(L+c, 'w--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
 
 % D. Formatting
-colormap(turbo);           % Rich colormap for field intensity
+colormap(parula);           % Rich colormap for field intensity
 cb = colorbar;
 cb.Label.String = 'Pressure p(x,y)';
 cb.Label.FontSize = 12;
