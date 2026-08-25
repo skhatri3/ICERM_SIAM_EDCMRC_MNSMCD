@@ -5,7 +5,7 @@ clear; clc; close all;
 
 %% 1. Parameter Definitions
 mu    = 1; % viscosity
-Da    = 0.4; % Darcy coefficient
+Da    = 1; % Darcy coefficient
 L     = 4; % Length of permeable region
 c     = 2; % Length of extension region
 G     = 1; % Pressure gradient
