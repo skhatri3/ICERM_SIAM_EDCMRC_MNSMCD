@@ -1,7 +1,7 @@
 % Check relationship between alpha and lambda for Da --> 0
 
 % Darcy number
-Da_vec = 0.001:0.001:0.1;
+Da_vec = 0.001:0.001:0.3;
 
 alpha_vec = zeros(size(Da_vec));
 lambda_vec = zeros(size(Da_vec));
@@ -47,6 +47,22 @@ ax = gca; ax.FontSize = 16;
 paramDiffs = abs(alpha_vec - lambda_vec);
 figure
 plot(Da_vec, paramDiffs, '-', 'LineWidth', 1.3)
+xlabel('Da')
+ylabel('$|\alpha-\lambda|$', 'Interpreter', 'latex')
+ax = gca; ax.FontSize = 16;
+
+
+figure
+semilogy(Da_vec, lambda_vec, '-', 'LineWidth', 1.3)
+hold on
+semilogy(Da_vec, alpha_vec, '-', 'LineWidth', 1.3)
+xlabel('Da')
+legend('$\lambda$', '$\alpha$', 'interpreter', 'latex', 'location', 'northwest', 'fontsize', 20)
+ax = gca; ax.FontSize = 16;
+
+
+figure
+semilogy(Da_vec, paramDiffs, '-', 'LineWidth', 1.3)
 xlabel('Da')
 ylabel('$|\alpha-\lambda|$', 'Interpreter', 'latex')
 ax = gca; ax.FontSize = 16;
