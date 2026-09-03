@@ -40,8 +40,13 @@ figure
 plot(Da_vec, lambda_vec, '-', 'LineWidth', 1.3)
 hold on
 plot(Da_vec, alpha_vec, '-', 'LineWidth', 1.3)
-
 xlabel('Da')
 legend('$\lambda$', '$\alpha$', 'interpreter', 'latex', 'location', 'northwest', 'fontsize', 20)
+ax = gca; ax.FontSize = 16;
 
+paramDiffs = abs(alpha_vec - lambda_vec);
+figure
+plot(Da_vec, paramDiffs, '-', 'LineWidth', 1.3)
+xlabel('Da')
+ylabel('$|\alpha-\lambda|$', 'Interpreter', 'latex')
 ax = gca; ax.FontSize = 16;
