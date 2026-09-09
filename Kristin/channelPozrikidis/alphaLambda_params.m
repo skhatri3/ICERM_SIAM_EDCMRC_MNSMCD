@@ -24,12 +24,11 @@ for j = 1:length(Da_vec)
     gamma_vec(j) = gamma;
 
     % Use Newton's method to compute lambda from FB methodology
-    l_old = 0.5;
+    lambda = 0.5;
     for nw = 1:30
-        f = (Da-H/2)*l_old*cot(l_old*H)*cos(l_old*H) + cos(l_old*H)/2 - H*l_old*sin(l_old*H)/2;
-        fp = cos(l_old*H)*((Da-H/2)*(cot(l_old*H)-H*l_old*csc(l_old*H)^2)-H^2*l_old/2) - H*sin(l_old*H)*(l_old*cot(l_old*H)+1);
-        lambda = l_old - f/fp;
-        l_old = lambda;
+        f = (Da-H/2)*lambda*cot(lambda*H)*cos(lambda*H) + cos(lambda*H)/2 - H*lambda*sin(lambda*H)/2;
+        fp = cos(lambda*H)*((Da-H/2)*(cot(lambda*H)-H*lambda*csc(lambda*H)^2)-H^2*lambda/2) - H*sin(lambda*H)*(lambda*cot(lambda*H)+1);
+        lambda = lambda - f/fp;
     end
     lambda_vec(j) = lambda;
 
