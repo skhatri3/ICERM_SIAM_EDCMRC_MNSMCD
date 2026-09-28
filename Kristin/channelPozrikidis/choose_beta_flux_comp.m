@@ -1,4 +1,4 @@
-% Use bisection method to find epsilon that gives correct flux across half
+% Use bisection method to find beta that gives correct flux across half
 % upper boundary
 clear
 close all
@@ -41,10 +41,13 @@ ds_x = (xmax - xmin)/N;
 ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 
 % Define initial blob size based on wall discretization
-ep_min = ds_y/100;
-ep_max = 10*ds_y;
-ep0 = (ep_min + ep_max)/2;
-ep_vec = ep0;
+ep = 0.5*ds_y;
+
+% Initialize beta for bisection method
+beta_min = 1e-5;
+bet_max = 0.01;
+beta0 = (beta_min + bet_max)/2;
+beta_vec = beta0;
 
 % Necessary for FB solution
 % Use Newton's method to compute lambda
@@ -60,10 +63,9 @@ flux_theory = -Da*G*(1-cosh(lambda*L/2))/(lambda^2*cosh(lambda*L/2));
 flux_numerical = 2*flux_theory;
 
 % Tolerance for bisection method
-tol = 1e-2;
+tol = 1e-5;
 
 while abs(flux_numerical - flux_theory) > tol
-
     %discretization step of top/bottom walls
     stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
     stb = stb';
@@ -113,10 +115,10 @@ while abs(flux_numerical - flux_theory) > tol
     u2_bd_exact = [u2_top_exact; u2_bot_exact; u2_left_exact; u2_right_exact];
 
     % Compute forces
-    f_temp = RegStokeslets2D_velocitytoforce_KK([y1,y2], [y1,y2], [u1_bd_exact,u2_bd_exact], ep0, mu, blob_num,wt);
+    f_temp = RegStokeslets2D_velocitytoforce_KK([y1,y2], [y1,y2], [u1_bd_exact,u2_bd_exact], beta0, mu, blob_num,wt);
 
     % % Compute velcoity using Bernardi BCs % %
-    ug = RegStokeslets2D_forcetovelocity([y1,y2],f_temp,[x1,x2],ep0,mu,blob_num,wt);
+    ug = RegStokeslets2D_forcetovelocity([y1,y2],f_temp,[x1,x2],beta0,mu,blob_num,wt);
     ug1 = ug(:,1);
     ug2 = ug(:,2);
     u1m = reshape(ug1,size(xx1,2),size(xx2,2)); % x-coords of computed velocities everywhere
@@ -124,20 +126,20 @@ while abs(flux_numerical - flux_theory) > tol
     ummag = sqrt(u1m.^2 + u2m.^2);
 
     % Numerical flux across half the top boundary
-    idx_flux = find(y1_top < c + L/2);
+    idx_flux = find(y1_top >= c & y1_top <= c + L/2);
     y1_flux = y1_top(idx_flux);
     normals_top = zeros(length(y1_flux),2);
     normals_top(:,2) = 1;
-    flux_numerical = ds_x*sum(dot(normals_top, [zeros(size(y1_flux)), u2_top_exact(1:length(y1_flux))]));
+    flux_numerical = ds_x*sum(dot(normals_top, [zeros(size(y1_flux)), u2_top_exact(idx_flux)]));
 
     if flux_theory - flux_numerical < -tol % too much fluid leaving
-        ep_max = ep0;
-        ep0 = (ep_min + ep0)/2;
-        ep_vec = [ep_vec, ep0];
+        bet_max = beta0;
+        beta0 = (beta_min + beta0)/2;
+        beta_vec = [beta_vec, beta0];
     elseif flux_theory - flux_numerical > tol % not enough fluid leaving
-        ep_min = ep0;
-        ep0 = (ep_max + ep0)/2;
-        ep_vec = [ep_vec, ep0];
+        beta_min = beta0;
+        beta0 = (bet_max + beta0)/2;
+        beta_vec = [beta_vec, beta0];
     end
 
 end
