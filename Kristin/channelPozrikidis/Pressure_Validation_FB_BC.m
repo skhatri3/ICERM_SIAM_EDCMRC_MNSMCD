@@ -12,9 +12,9 @@ H = 1;    % Channel radius
 xm = (L+2*c)/2; % Channel midpoint
 
 % Use Newton's method to compute lambda eigenvalue
-lambda = sqrt(2*Da);
+eta = sqrt(2*Da);
 fun = @(L) (Da-H/2)*L*cot(L*H)*cos(L*H) + cos(L*H)/2 - H*L*sin(L*H)/2;
-lambda = fzero(fun, lambda);
+eta = fzero(fun, eta);
 
 N_terms = 50;        % Number of Fourier terms in the sum
 W = L + 2*c;         % Total domain width [0, W]
@@ -29,42 +29,28 @@ p_exact = zeros(size(x));
 for i = 1:length(x)
     xi = x(i);
     if xi >= 0 && xi < c
-        p_exact(i) = G*(c - xi + tanh(lambda*L/2)/lambda);
+        p_exact(i) = G*(c - xi + tanh(eta*L/2)/eta);
     elseif xi >= c && xi <= (L + c)
-        p_exact(i) = -G*sinh(lambda*(xi - xm))/(lambda*cosh(lambda*L/2));
+        p_exact(i) = -G*sinh(eta*(xi - xm))/(eta*cosh(eta*L/2));
     else % (L + c) < xi <= (L + 2*c)
-        p_exact(i) = G*(L + c - xi - tanh(lambda*L/2)/lambda);
+        p_exact(i) = G*(L + c - xi - tanh(eta*L/2)/eta);
     end
 end
 
 %% 4. Fourier Cosine Series 
 a0 = 0; % a0 = 0 by odd symmetry of p(x,0)
-p_fourier = (a0 / 2) * ones(size(x));
+p_fourier = zeros(size(x));
 
 for n = 1:N_terms
     lambda_n = n * pi / W; % eigenvalue from separation of variables    
     if mod(n, 2) == 0  % when n is EVEN (2, 4, 6...)
-        % By odd symmetry of p(x,0) around W/2, integral over [0, W] is 0
-        % This is because sinh term is odd and cos term is even.
-        % so the integrand is odd.
         a_n = 0;        
     else % n is ODD (1, 3, 5...)
         % Integral over Region 1 [0, c]:
         % Now the integrand is even.
-        An = -(gamma / lambda_n) * sinh(alpha*L / 2) * sin(lambda_n * c) ...
-             + (G / (lambda_n^2)) * (1 - cos(lambda_n * c));
-        % Integral over Region 3 [c,L+2c] will be 2*An
-         
-        % Integral over Left Half of Region 2 [c, W/2]:
-        Bn_half = (gamma / (alpha^2 + lambda_n^2)) * ...
-          (-alpha * cosh(alpha*L / 2) * cos(lambda_n * c) ...
-           + lambda_n * sinh(alpha*L / 2) * sin(lambda_n * c));
-        % By symmetry, the other half [W/2,L+c] is the same.
-               
-        % Total integral over [0, W] is 2 * (Integral over [0, W/2])
-        integral_total = 2 * (An + Bn_half);
-        
-        a_n = (2 / W) * integral_total;
+        a_n = (4*G)*(eta - eta*cos(lambda_n*c)+tanh(eta*L/2)*sin(lambda_n*c)/lambda_n^2+...
+            lambda_n*sin(lambda_n*c)*tanh(eta*L/2)-eta*cos(lambda_n*c)/(lambda_n^2+eta^2))/...
+            (eta*(L+2*c)*sinh(2*lambda_n*H));
     end
     
     % Update Fourier Series sum
