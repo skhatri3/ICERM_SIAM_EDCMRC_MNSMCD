@@ -4,10 +4,10 @@
 clear; clc; close all;
 
 %% 1. Parameter Definitions
-L = 4;    % Length of permeable region
+L = 3;    % Length of permeable region
 c = 2;    % Length of extension region
-G = 1;    % Pressure gradient
-Da = 0.3; % Darcy number
+G = 4;    % Pressure gradient
+Da = 0.4; % Darcy number
 H = 1;    % Channel radius
 xm = (L+2*c)/2; % Channel midpoint
 
@@ -27,35 +27,33 @@ x = linspace(0, W, 1000);
 p_exact = zeros(size(x));
 
 for i = 1:length(x)
-    xi = x(i);
-    if xi >= 0 && xi < c
-        p_exact(i) = G*(c - xi + tanh(eta*L/2)/eta);
-    elseif xi >= c && xi <= (L + c)
-        p_exact(i) = -G*sinh(eta*(xi - xm))/(eta*cosh(eta*L/2));
+    x_i = x(i);
+    if x_i >= 0 && x_i < c
+        p_exact(i) = G*(c - x_i + tanh(eta*L/2)/eta);
+    elseif x_i >= c && x_i <= (L + c)
+        p_exact(i) = -G*sinh(eta*(x_i - xm))/(eta*cosh(eta*L/2));
     else % (L + c) < xi <= (L + 2*c)
-        p_exact(i) = G*(L + c - xi - tanh(eta*L/2)/eta);
+        p_exact(i) = G*(L + c - x_i - tanh(eta*L/2)/eta);
     end
 end
 
 %% 4. Fourier Cosine Series 
-a0 = 0; % a0 = 0 by odd symmetry of p(x,0)
 p_fourier = zeros(size(x));
 
-for n = 1:N_terms
-    lambda_n = n * pi / W; % eigenvalue from separation of variables    
-    if mod(n, 2) == 0  % when n is EVEN (2, 4, 6...)
-        a_n = 0;        
-    else % n is ODD (1, 3, 5...)
-        % Integral over Region 1 [0, c]:
-        % Now the integrand is even.
-        a_n = (4*G)*(eta - eta*cos(lambda_n*c)+tanh(eta*L/2)*sin(lambda_n*c)/lambda_n^2+...
-            lambda_n*sin(lambda_n*c)*tanh(eta*L/2)-eta*cos(lambda_n*c)/(lambda_n^2+eta^2))/...
-            (eta*(L+2*c)*sinh(2*lambda_n*H));
-    end
-    
+for n = 1:2:N_terms % loop over odd terms
+    lambda_n = n*pi/W;
+
+    % integral over [0,c]
+    an_firsthalf = (eta - eta*cos(lambda_n*c) + lambda_n*tanh(eta*L/2)*sin(lambda_n*c))/lambda_n^2;
+
+    % integral over [c,x_m]
+    an_secondhalf = (eta*cos(lambda_n*c) - lambda_n*sin(lambda_n*c)*tanh(eta*L/2))/(lambda_n^2+eta^2);
+
     % Update Fourier Series sum
-    p_fourier = p_fourier + a_n * cos(lambda_n * x);
+    p_fourier = p_fourier + (an_firsthalf + an_secondhalf)*cos(lambda_n*x);
 end
+p_fourier = (4*G/(eta*W))*p_fourier; % multiply by constant from Fourier computation
+
 %% 5. Plotting Results
 figure('Color', 'w', 'Position', [100, 100, 900, 500]);
 plot(x, p_exact, 'r-', 'LineWidth', 2.5, 'DisplayName', 'Exact Piecewise p(x,0)');
@@ -95,34 +93,28 @@ y = linspace(0, 2*H, Ny);
 %% 3. Compute Top-Bottom Component: p_tb(x,y) (Overflow-Safe)
 p_tb = zeros(size(X));
 
-for k = 1:N_terms
-    n = 2*k - 1;             % Odd mode: 1, 3, 5...
+for n = 1:2:N_terms % loop over odd terms
     lambda_n = n * pi / W;
     
     % Fourier coefficients a_n (for odd n)
-    An = -(gamma / lambda_n) * sinh(alpha*L / 2) * sin(lambda_n * c) ...
-         + (G / (lambda_n^2)) * (1 - cos(lambda_n * c));
-     
-    Bn_half = (gamma / (alpha^2 + lambda_n^2)) * ...
-              (-alpha * cosh(alpha*L / 2) * cos(lambda_n * c) ...
-               + lambda_n * sinh(alpha*L / 2) * sin(lambda_n * c));
-           
-    a_n = (4 / W) * (An + Bn_half);
-    
-    % Numerically stable vertical ratio (prevents Inf/NaN overflow):
-    % Y_profile = (sinh(lambda_n*Y) - sinh(lambda_n*(Y-2H))) / sinh(2*lambda_n*H)
-    % Using exp instead to avoid overflow errors
+    % integral over [0,c]
+    an_firsthalf = (eta - eta*cos(lambda_n*c) + lambda_n*tanh(eta*L/2)*sin(lambda_n*c))/lambda_n^2;
 
-    Y_profile = exp(-lambda_n * (2*H - Y)) + exp(-lambda_n * Y);
+    % integral over [c,x_m]
+    an_secondhalf = (eta*cos(lambda_n*c) - lambda_n*sin(lambda_n*c)*tanh(eta*L/2))/(lambda_n^2+eta^2);
+
+    a_n = an_firsthalf + an_secondhalf;
     
-    p_tb = p_tb + a_n * Y_profile .* cos(lambda_n * X);
+    Y_profile = exp(-lambda_n*(2*H - Y)) + exp(-lambda_n * Y);
+    
+    p_tb = p_tb + a_n*Y_profile.*cos(lambda_n * X);
 end
+p_tb = (4*G/(eta*W))*p_tb;
 
 %% 4. Compute Left-Right Component: p_lr(x,y) (Overflow-Safe)
 p_lr = zeros(size(X));
 
-for k = 1:N_terms
-    n = 2*k - 1;             % Odd modes only
+for n = 1:2:N_terms % loop over odd terms
     mu_n = n * pi / (2*H);
     
     % Numerically stable horizontal ratio:
@@ -136,7 +128,7 @@ for k = 1:N_terms
     p_lr = p_lr + coeff * X_profile .* sin(mu_n * Y);
 end
 
-p_lr = -(8 * G * H / (pi^2)) * p_lr;
+p_lr = -(8*G*H/(pi^2))*p_lr;
 
 %% 5. Total Pressure Field
 P_total = p_lr + p_tb;
