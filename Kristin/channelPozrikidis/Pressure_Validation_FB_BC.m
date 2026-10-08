@@ -17,7 +17,7 @@ eta = sqrt(2*Da);
 fun = @(L) (Da-H/2)*L*cot(L*H)*cos(L*H) + cos(L*H)/2 - H*L*sin(L*H)/2;
 eta = fzero(fun, eta);
 
-N_vec = [50, 100, 200, 400]; % Number of Fourier terms in the sum
+N_vec = 50;%[50, 100, 200, 400]; % Number of Fourier terms in the sum
 W = L + 2*c;         % Total domain width [0, W]
 
 x = linspace(0, W, 1000);
@@ -46,16 +46,13 @@ for N_terms = N_vec
     for n = 1:2:N_terms % loop over odd terms
         lambda_n = n*pi/W;
 
-        % integral over [0,c]
-        an_firsthalf = (eta - eta*cos(lambda_n*c) + lambda_n*tanh(eta*L/2)*sin(lambda_n*c))/lambda_n^2;
-
-        % integral over [c,x_m]
-        an_secondhalf = (eta*cos(lambda_n*c) - lambda_n*sin(lambda_n*c)*tanh(eta*L/2))/(lambda_n^2+eta^2);
+        % Fourier coefficients
+        an = (eta^2*(1 - cos(c*lambda_n)) + lambda_n^2 + eta*lambda_n*sin(c*lambda_n)*tanh(L*eta/2))/(lambda_n^2*(eta^2 + lambda_n^2));
 
         % Update Fourier Series sum
-        p_fourier = p_fourier + (an_firsthalf + an_secondhalf)*cos(lambda_n*x);
+        p_fourier = p_fourier + an*cos(lambda_n*x);
     end
-    p_fourier = (4*G/(eta*W))*p_fourier; % multiply by constant from Fourier computation
+    p_fourier = (4*G/W)*p_fourier; % multiply by constant from Fourier computation
 
 
     % Error computation
@@ -76,14 +73,16 @@ title('Fourier cosine series error for pressure boundary condition')
 box on
 xlabel('$x$', 'Interpreter', 'latex')
 ylabel('Absolute error')
-legend(['N=', num2str(N_vec(1)) ', max abs error=', num2str(maxErrAbs(1)), ', L2 error=', num2str(L2Err(1))],...
-    ['N=', num2str(N_vec(2)) ', max abs error=', num2str(maxErrAbs(2)), ', L2 error=', num2str(L2Err(2))],...
-    ['N=', num2str(N_vec(3)) ', max abs error=', num2str(maxErrAbs(3)), ', L2 error=', num2str(L2Err(3))],...
-    ['N=', num2str(N_vec(4)) ', max abs error=', num2str(maxErrAbs(4)), ', L2 error=', num2str(L2Err(4))],...
-    'Location', 'best')
+if length(N_vec) == 4
+    legend(['N=', num2str(N_vec(1)) ', max abs error=', num2str(maxErrAbs(1)), ', L2 error=', num2str(L2Err(1))],...
+        ['N=', num2str(N_vec(2)) ', max abs error=', num2str(maxErrAbs(2)), ', L2 error=', num2str(L2Err(2))],...
+        ['N=', num2str(N_vec(3)) ', max abs error=', num2str(maxErrAbs(3)), ', L2 error=', num2str(L2Err(3))],...
+        ['N=', num2str(N_vec(4)) ', max abs error=', num2str(maxErrAbs(4)), ', L2 error=', num2str(L2Err(4))],...
+        'Location', 'best')
+end
 ax = gca; ax.FontSize = 14;
 
-%% plot of exact and series
+% plot of exact and series
 figure
 plot(x, p_exact, 'r-', 'LineWidth', 2.5, 'DisplayName', 'Exact Piecewise p(x,0)');
 hold on;
@@ -124,22 +123,16 @@ y = linspace(0, 2*H, Ny);
 p_tb = zeros(size(X));
 
 for n = 1:2:N_terms % loop over odd terms
-    lambda_n = n * pi / W;
+    lambda_n = n * pi / W; % Note: n = 2k-1
     
     % Fourier coefficients a_n (for odd n)
-    % integral over [0,c]
-    an_firsthalf = (eta - eta*cos(lambda_n*c) + lambda_n*tanh(eta*L/2)*sin(lambda_n*c))/lambda_n^2;
-
-    % integral over [c,x_m]
-    an_secondhalf = (eta*cos(lambda_n*c) - lambda_n*sin(lambda_n*c)*tanh(eta*L/2))/(lambda_n^2+eta^2);
-
-    a_n = an_firsthalf + an_secondhalf;
+    a_n = (eta^2*(1 - cos(c*lambda_n)) + lambda_n^2 + eta*lambda_n*sin(c*lambda_n)*tanh(L*eta/2))/(lambda_n^2*(eta^2 + lambda_n^2));
     
     Y_profile = exp(-lambda_n*(2*H - Y)) + exp(-lambda_n * Y);
     
     p_tb = p_tb + a_n*Y_profile.*cos(lambda_n * X);
 end
-p_tb = (4*G/(eta*W))*p_tb;
+p_tb = (4*G/W)*p_tb; % multiply by constant in Fourier computation
 
 % Compute Left-Right Component: p_lr(x,y) (Overflow-Safe)
 p_lr = zeros(size(X));
