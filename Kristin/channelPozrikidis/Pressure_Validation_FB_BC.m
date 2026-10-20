@@ -22,7 +22,7 @@ W = L + 2*c;         % Total domain width [0, W]
 
 x = linspace(0, W, 1000);
 
-% Construct exact piecewise function for p(x,0)=p(x,2H)
+%% Construct exact piecewise function for p(x,0)=p(x,2H)
 % For use on top/bottom boundary
 p_exact = zeros(size(x));
 
@@ -37,7 +37,7 @@ for i = 1:length(x)
     end
 end
 
-% Compute Fourier cosine series
+%% Compute Fourier cosine series
 maxErrAbs = zeros(size(N_vec));
 L2Err = zeros(size(N_vec));
 id = 1;
@@ -97,6 +97,12 @@ ylabel('p(x,0)', 'FontSize', 12);
 title('Convergence of Fourier Cosine Series to Piecewise Boundary Condition', 'FontSize', 14);
 legend('Location', 'northwest', 'FontSize', 11);
 set(gca, 'FontSize', 11);
+
+
+%% Linearization approach
+% Treat hyperbolic sine as a perturbation to linear
+p_l = G*(c+tanh(eta*L/2)/eta)*(1-2*x/(L+2*c));
+
 
 
 %% =========================================================================
@@ -182,7 +188,20 @@ axis equal tight;
 set(gca, 'FontSize', 11, 'Layer', 'top');
 grid on;
 
-%%
 
 
+%% Pressure as perturbation to linear
+% Treat hyperbolic sine as perturbation to linear pressure
+xi = x(x>c & x<L+c);
+p_linear = G*tanh(eta*L/2)*(1-2*(xi-c)/L)/eta;
 
+figure
+plot(xi, p_exact(x>c & x<L+c), 'LineWidth', 2)
+hold on
+plot(xi,p_linear, '--', 'LineWidth', 2)
+plot(xi, p_exact(x>c & x<L+c) - p_linear, 'k', 'LineWidth', 1.3)
+
+legend('Hyp. sine pressure', 'Constant press. grad.', 'Difference')
+grid on
+xlim([c-0.2, L+c+0.2])
+ylim([-10, 10])

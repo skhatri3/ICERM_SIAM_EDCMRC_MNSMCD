@@ -8,16 +8,18 @@
 % so that we can adjust beta appropriately to preserve the flow when
 % changing epsilon.
 
-clear all 
+clear all
 close all
 
-%% Parameters to set 
+addpath('./stokeslets_codes');
+
+%% Parameters to set
 
 %setting the viscosity
-mu = 1; 
+mu = 1;
 
-%number of points on boundary where velocity is set and force is computed 
-N = 160;    
+%number of points on boundary where velocity is set and force is computed
+N = 160;
 
 %blob choice
 blob=2;
@@ -28,7 +30,7 @@ blob=2;
 %constant determining inflow velocity profile
 a=4;
 
- 
+
 %channel
 Lx = 5;
 Ly = 1;
@@ -53,14 +55,14 @@ s = s';
 %top wall coordinates (x,y) = (y1_top,y2_top)
 y1_top=s;
 y2_top = ymax*ones(size(y1_top));
-%unit normals for top: 
+%unit normals for top:
 normals_top=zeros(length(y1_top),2);
 normals_top(:,2)=1;
 %bottom wall coordinates (x,y) = (y1_bot,y2_bot)
 y1_bot = s;
 y2_bot = ymin*ones(size(y1_bot));
 %unit normals for bottom
-normals_bot=zeros(length(y1_bot),2); 
+normals_bot=zeros(length(y1_bot),2);
 normals_bot(:,2)=-1;
 %left-hand wall coordinates (x,y) = (y1_side,y2_side)
 y2_side = (ymin+ds/2:ds:ymax-ds/2)';
@@ -91,10 +93,10 @@ normals=[normals_top; normals_bot; normals_side];
 
 % Set beta vector in for-loop
 %beta vector for function;
-%beta= zeros(length(y1),1); 
+%beta= zeros(length(y1),1);
 %beta(I)=b;
 
-%% Initial Values for bisection 
+%% Initial Values for bisection
 
 b1 = 0.00007;
 b2 = 0.00009;
@@ -103,7 +105,7 @@ Rtarget = 0.009889411831155; % blob 2 for ep = 0.05/sqrt(5)
 
 Routb1 =0.089610154420317;
 
-Routb2 = -0.074588847964431;  
+Routb2 = -0.074588847964431;
 
 % For b = 0.0001
 %Rtarget = 0.302653177713578; % for ep = 0.05/sqrt(5), b = 0.0001, blob 2
@@ -129,54 +131,55 @@ for k = 1:itMax
     it_count = it_count + 1;
     b = (b1+b2)/2;
     l = (b2-b1)/2;
-%%
-%velocity on boundary
-%top
-u1_top=zeros(size(y1_top));
-u2_top=zeros(size(y1_top));
-%bottom
-u1_bot=zeros(size(y1_bot));
-u2_bot=zeros(size(y1_bot));
-%side: poiseulle flow
-u1_side=a*(y2_side/Ly.*(1-y2_side/Ly));
-u2_side=zeros(size(y1_side));
+    %%
+    %velocity on boundary
+    %top
+    u1_top=zeros(size(y1_top));
+    u2_top=zeros(size(y1_top));
+    %bottom
+    u1_bot=zeros(size(y1_bot));
+    u2_bot=zeros(size(y1_bot));
+    %side: poiseulle flow
+    u1_side=a*(y2_side/Ly.*(1-y2_side/Ly));
+    u2_side=zeros(size(y1_side));
 
-u1 = [u1_top; u1_bot; u1_side];
-u2 = [u2_top; u2_bot; u2_side];
-%%
-   
-%beta vector for function using current b values;
-beta= zeros(length(y1),1);
-beta(I)=b;
+    u1 = [u1_top; u1_bot; u1_side];
+    u2 = [u2_top; u2_bot; u2_side];
 
-%% Compute solution for current beta
-%compute g
-g=RegStokeslets2D_velocityto_gforce_permeable_diff_ep([y1,y2],[y1,y2],...
-    [u1,u2],ep1,ep2,mu, blob, I, beta, normals);
+    %%
 
-%Find velocity in permeable region:
+    %beta vector for function using current b values;
+    beta= zeros(length(y1),1);
+    beta(I)=b;
 
-[u_beta] = RegStokeslets2D_gtovelocity([y1,y2],g, [y1b,y2b],ep2,mu,blob, beta, normals);
+    %% Compute solution for current beta
+    %compute g
+    g=RegStokeslets2D_velocityto_gforce_permeable_diff_ep([y1,y2],[y1,y2],...
+        [u1,u2],ep1,ep2,mu, blob, I, beta, normals);
 
-%Put in the new velocities for the permeable part
-%permeable part : temporary velocity for finding g
-u1(I)=u_beta(:,1);
-u2(I)=u_beta(:,2);
+    %Find velocity in permeable region:
 
-%computing the force 
-f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep1,mu, blob);
-f1 = f(:,1);
-f2 = f(:,2);    
+    [u_beta] = RegStokeslets2D_gtovelocity([y1,y2],g, [y1b,y2b],ep2,mu,blob, beta, normals);
 
-%outlet
-uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
-    [x1_out,x2_out],ep1,mu, blob);
-Rout=-ds*sum(dot(normals_side, uu))
+    %Put in the new velocities for the permeable part
+    %permeable part : temporary velocity for finding g
+    u1(I)=u_beta(:,1);
+    u2(I)=u_beta(:,2);
 
-Rdiff = Rout-Rtarget % current difference in outflows
+    %computing the force
+    f = RegStokeslets2D_velocitytoforce([y1,y2],[y1,y2],[u1,u2],ep1,mu, blob);
+    f1 = f(:,1);
+    f2 = f(:,2);
 
-current = [it_count, b1, b2, b, Rdiff, l];
-disp(current)
+    %outlet
+    uu = RegStokeslets2D_forcetovelocity([y1,y2],[f1,f2],...
+        [x1_out,x2_out],ep1,mu, blob);
+    Rout=-ds*sum(dot(normals_side, uu))
+
+    Rdiff = Rout-Rtarget % current difference in outflows
+
+    current = [it_count, b1, b2, b, Rdiff, l];
+    disp(current)
 
     if (abs(Rdiff)< tol)
         disp('Bisection Converged')
