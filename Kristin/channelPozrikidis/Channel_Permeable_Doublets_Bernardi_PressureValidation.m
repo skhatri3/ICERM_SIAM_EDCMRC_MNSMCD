@@ -41,18 +41,18 @@ ymax = 2*H;
 % Poiseuille flow function for inlet and outlet
 pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
 
-scalefactor = 0.05; % for the boundary velocity figures (why?)
-
 % Discretization step
 ds_x = (xmax - xmin)/N;
 ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 
 % Define blob size based on wall discretization 
 ep = ds_y*ep_factor;
-ep_d =ep*ep_d_factor; 
+ep_d = ep;
+%ep_d =ep*ep_d_factor; 
 
 % beta value based on Da, epsilon, and C
-beta_value = Da*ep*C;
+%beta_value = Da*ep*C;
+beta_value = 0.001;
 
 %discretization step of top/bottom walls
 stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
@@ -78,7 +78,6 @@ normals_left = zeros(length(slr),2); % unit normals for left  wall
 normals_left(:,1) = -1;
 normals_right = zeros(length(slr),2); % unit normals for right wall 
 normals_right(:,1) = 1;
-
 % normals on full boundary
 normals = [normals_top; normals_bot; normals_left; normals_right];
 
@@ -105,36 +104,29 @@ idx = find(c < y1 & y1 < L+c);
 beta = zeros(length(y1),1);
 beta(idx) = beta_value;
 
-% STEP 1: Find g-force distribution due to St+SD on solid walls and SD (no
-% Stokeslets) on permeable walls
-%[g] = RegStokeslets2D_velocityto_gforce_permeable([y1,y2],[y1,y2],...
-%    [u1,u2], ep, mu, blob_num, idx, beta, normals, wt);
+% Find g-force distribution due to St+SD on solid walls and SD (no Stokeslets) on permeable walls
 [g] = RegStokeslets2D_velocityto_gforce_SK([y1,y2], [y1,y2], [u1,u2],ep,ep_d,mu,blob_num, idx, beta, normals, wt); 
 
 % Boundary points for permeable section
 y1b=y1(idx);
 y2b=y2(idx);
-
 % Inputs to function are source, g force, target, ...
 [u_perm] = RegStokeslets2D_gtovelocity([y1,y2], g, [y1b,y2b], ep_d, mu, blob_num, beta, normals, wt);
 u_perm1 = u_perm(:,1);
 u_perm2 = u_perm(:,2);
 
 % Replace the placeholder zeros in u1,u2 with the velocities
-% [zeros(size(u1_top_exact)); zeros(size(u1_bot_exact)); u1_left_exact; u1_right_exact; zeros(size(u1_corner_exact))]; %x-coordinates of all boundary velocities
 u1(idx) = u_perm1;
 u2(idx) = u_perm2;
 
 
-% Step 3: Use boundary velocities to solve for forces on boundary
-
-% Now that the missing velocities are recovered, steps 3-4 are the regular
+% Use boundary velocities to solve for forces on boundary
+% Now that the missing velocities are recovered, the next steps are the regular
 % "Stokeslet" problem, given boundary velocities, find boundary forces,
 % then find channel velocities.
 ftemp = RegStokeslets2D_velocitytoforce_KK([y1,y2], [y1,y2], [u1,u2], ep, mu, blob_num,wt);
 
-% Step 4: compute velocity everywhere using the computed forces
-
+% Compute velocity everywhere using the computed forces
 % Points where velocity will be computed within the channel (target points)
 % We will only compute the pressures in the permeable region in order to
 % compare to p_T in exact solution.
@@ -163,7 +155,7 @@ p = RegStokeslets2D_forcetopressure_gauss([y1,y2], ftemp, [x1, x2], ep, mu, beta
 
 % Exact pressure
 xm = (L + 2*c)/2;
-% Use Newton's method to compute lambda eigenvalue
+% Use Newton's method to compute eta eigenvalue
 eta = sqrt(2*Da);
 fun = @(L) (Da-H/2)*L*cot(L*H)*cos(L*H) + cos(L*H)/2 - H*L*sin(L*H)/2;
 eta = fzero(fun, eta);

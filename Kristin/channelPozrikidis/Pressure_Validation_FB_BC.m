@@ -12,13 +12,13 @@ Da = 0.4; % Darcy number
 H = 1;    % Channel radius
 xm = (L+2*c)/2; % Channel midpoint
 
-bL = G*(c + tanh(eta*L/2)/eta);
-bR = G*(L+2*c) - bL;
-
 % Use Newton's method to compute lambda eigenvalue
 eta = sqrt(2*Da);
 fun = @(L) (Da-H/2)*L*cot(L*H)*cos(L*H) + cos(L*H)/2 - H*L*sin(L*H)/2;
 eta = fzero(fun, eta);
+
+bL = G*(c + tanh(eta*L/2)/eta);
+bR = G*(L+2*c) - bL;
 
 N_vec = 50;%[50, 100, 200, 400]; % Number of Fourier terms in the sum
 W = L + 2*c;         % Total domain width [0, W]
@@ -27,7 +27,6 @@ x = linspace(0, W, 1000);
 
 %% Construct exact piecewise function for p(x,0)=p(x,2H)
 % For use on top/bottom boundary
-close all
 p_exact = zeros(size(x));
 
 for i = 1:length(x)
@@ -85,7 +84,7 @@ for N_terms = N_vec
 
     % Plot results
     % error plots
-    figure(1)
+    figure(10)
     hold on
     plot(x, errAbs, 'LineWidth', 1.3)
 end
@@ -164,7 +163,7 @@ for N_terms = N_vec
 
     % Plot results
     % error plots
-    figure(1)
+    figure(11)
     hold on
     plot(x, errAbs, 'LineWidth', 1.3)
 end

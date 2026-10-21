@@ -1,4 +1,4 @@
-function plot_streamline_computed_fun(u1m,u2m,x1gg,x2gg,y1,y2,method_name,beta_value)
+function plot_streamline_computed_fun(u1m,u2m,x1gg,x2gg,y1,y2,method_name)
 
 plot(y1, y2, 'k.')
 hold on
@@ -17,7 +17,7 @@ RGB = orderedcolors("gem");
 set(hh1_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 set(hh2_comp, 'Color', RGB(1,:), 'linewidth', strmLW);
 
-title(['Computed streamlines - ' method_name, ' $\beta=$', num2str(beta_value)],'interpreter','latex')
+title(['Computed streamlines - ' method_name],'interpreter','latex')
 xlabel('$x$', 'Interpreter', 'latex')
 ylabel('$y$', 'Interpreter', 'latex')
 axis equal
