@@ -3,7 +3,7 @@
 % Channel set-up using FB boundary conditions
 clear; close all
 
-addpath('./stokeslets_codes'); 
+addpath('../stokeslets_codes'); 
 
 method_for_plots = 'St+SD Pozrikidis Set-up';
 %set Darcy number

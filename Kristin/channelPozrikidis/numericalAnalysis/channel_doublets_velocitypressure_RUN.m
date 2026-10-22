@@ -8,9 +8,11 @@ N = 160;
 
 % Input parameters
 Da = 0.3; % Darcy number
+
 ep_factor = 0.5;  % ep = ep_factor * ds_y
-ep_d_factor = 1; % ep_d = ep_d_factor * ep
+ep_d_factor = 3; % ep_d = ep_d_factor * ep
 beta_factor = 0.34; % beta_value = beta_factor * Da * ep
+
 % Geometry params (pass into function as data structure)
 params.L = 3;
 params.H = 1;
@@ -44,6 +46,7 @@ pm_sd = reshape(P_sd, size(xx1,2), size(xx2,2));
 pm_gauss = reshape(P_gauss, size(xx1,2), size(xx2,2));
 
 % % % Plotting
+addpath('..'); 
 % method for plots
 method_for_plots = "St + SD";
 

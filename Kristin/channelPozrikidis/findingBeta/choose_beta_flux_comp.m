@@ -3,7 +3,7 @@
 clear
 close all
 
-addpath('./stokeslets_codes');
+addpath('../stokeslets_codes'); 
 
 %set Darcy number
 Da = 0.4;

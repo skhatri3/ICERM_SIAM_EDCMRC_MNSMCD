@@ -11,7 +11,7 @@
 clear all
 close all
 
-addpath('./stokeslets_codes');
+addpath('../stokeslets_codes'); 
 
 %% Parameters to set
 

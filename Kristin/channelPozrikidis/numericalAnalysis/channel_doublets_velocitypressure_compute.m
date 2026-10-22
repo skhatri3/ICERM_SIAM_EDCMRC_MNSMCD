@@ -1,6 +1,5 @@
-% Use MRS+SD to compute u at desired target locations given fluid
-% parameters, N, ep, ep_d, beta
-function [U, P_sd, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, Da, beta_factor, params, x)
+% Use MRS+SD to compute u at desired target locations given fluid parameters
+function [U, P_st, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, Da, beta_factor, params, x)
 
 % INPUTS:
 % N -- number of source points
@@ -14,11 +13,11 @@ function [U, P_sd, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep
 % OUTPUTS:
 % U -- Velocity array U with x-component in column 1 and y-component in
 %               column 2 at target points
-% P_sd -- Pressure at target points using doublet pressure expression
+% P_st -- Pressure at target points using stokeslets pressure expression
 % P_gauss -- Pressure at target points using gauss formulation
 % y -- source points (x-comp in column 1, y-comp in column 2)
 
-addpath('./stokeslets_codes'); 
+addpath('../stokeslets_codes'); 
 
 % Parameters that will be unchanged across runs
 %viscosity
@@ -158,4 +157,4 @@ P_gauss = RegStokeslets2D_forcetopressure_gauss([y1,y2], ftemp, [x1, x2], ep, mu
 U = RegStokeslets2D_forcetovelocity([y1,y2],ftemp,[x1,x2],ep,mu,blob_num,wt);
 
 % Computed pressure using SD
-P_sd = RegStokeslets2D_forcetopressure([y1,y2], ftemp, [x1, x2], ep, mu, blob_num, wt);
+P_st = RegStokeslets2D_forcetopressure([y1,y2], ftemp, [x1, x2], ep, mu, blob_num, wt);

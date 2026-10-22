@@ -1,0 +1,80 @@
+function [errors] = calculate_errors_fun(U_approx, U_exact, P_approx, P_exact, dx,dy)
+
+% Computes LInf, L1, and L2 errors in velocity and pressure
+
+% Unpack vectors
+u_approx = U_approx(:,1);
+v_approx = U_approx(:,2);
+u_exact = U_exact(:,1);
+v_exact = U_exact(:,2);
+
+% Differences
+u_error = u_approx - u_exact;
+v_error = v_approx - v_exact;
+p_error = P_approx - P_exact;
+
+% LInf
+u_error_max = max(max(abs(u_error)));
+v_error_max = max(max(abs(v_error)));
+p_error_max = max(max(abs(p_error)));
+% L1
+u_error_L1 = dx*dy*sum(sum(abs(u_error)));
+v_error_L1 = dx*dy*sum(sum(abs(v_error)));
+p_error
+% L2
+u_error_L2 = sqrt(dx*dy*sum(sum(u_error.^2)));
+v_error_L2 = sqrt(dx*dy*sum(sum(v_error.^2)));
+% L2 magnitude
+error_L2_mag = sqrt(u_error.^2 + v_error.^2);
+
+ColNames = {'Max','L1','L2'};
+Emax = [u_error_max; v_error_max];
+EL1 = [u_error_L1; v_error_L1];
+EL2 = [u_error_L2; v_error_L2];
+errors = table(Emax, EL1, EL2,'VariableNames',ColNames);
+disp(errors)
+
+end
+
+%scalefactor = 3;
+%skip = 1;
+% figure
+% subplot(2,2,1);
+% pcolor(xx1, xx2, u_error)
+% shading interp
+% colorbar('southoutside')
+% title(['Error in u (horizontal) velocity -- ' method_name]);
+% xlabel('$x$', 'Interpreter', 'latex')
+% ylabel('$y$', 'Interpreter', 'latex')
+% axis equal;
+% set(gca,'FontSize',12)
+% 
+% subplot(2,2,2);
+% pcolor(xx1, xx2, v_error)
+% shading interp
+% colorbar('southoutside')
+% title(['Error in v (vertical) velocity -- ' method_name]);
+% xlabel('$x$', 'Interpreter', 'latex')
+% ylabel('$y$', 'Interpreter', 'latex')
+% axis equal;
+% set(gca,'FontSize',12)
+% 
+% subplot(2,2,3);
+% quiver(xx1(1:skip:end,1:skip:end), xx2(1:skip:end,1:skip:end), u_error(1:skip:end,1:skip:end), v_error(1:skip:end,1:skip:end),scalefactor)
+% hold on
+% plot(y1,y2,'.k')
+% axis equal
+% ylim([-1.1,1.1])
+% xlim([xx1(1),xx1(end)])
+% title('Quiver of errors')
+% set(gca,'FontSize',12)
+% 
+% subplot(2,2,4);
+% pcolor(xx1, xx2, error_mag)
+% shading interp
+% colorbar('southoutside')
+% title(['Magnitude of Error in Velocity -- ' method_name]);
+% xlabel('$x$', 'Interpreter', 'latex')
+% ylabel('$y$', 'Interpreter', 'latex')
+% axis equal;
+% set(gca,'FontSize',12)
