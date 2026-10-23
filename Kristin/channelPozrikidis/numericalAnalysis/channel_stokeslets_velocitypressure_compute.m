@@ -1,9 +1,12 @@
 % Use MRS to compute u at desired target locations given fluid parameters
-function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep_factor, Da, params, x)
+function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, Da, params, x)
 
 % INPUTS:
 % N -- number of source points
-% ep_factor -- scale factor for blob size for stokeslets; multiplies ds_y
+% ep -- epsilon blob size 
+%           Note: If changing to ep_factor to compute based
+%                   on ds_y discretization size, then change input name and uncomment
+%                   appropriate line after ds_y defined
 % Da -- Darcy number
 % params -- data structure containing geometry parameters
 % x1, x2 -- Target points x-comp and y-comp, resp.
@@ -47,8 +50,9 @@ pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
 ds_x = (xmax - xmin)/N;
 ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 
-% Define blob size based on wall discretization 
-ep = ds_y*ep_factor;
+% % Define blob size based on wall discretization
+% Note: comment out if assigning ep as input
+% ep = ds_y*ep_factor;
 
 %discretization step of top/bottom walls
 stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;

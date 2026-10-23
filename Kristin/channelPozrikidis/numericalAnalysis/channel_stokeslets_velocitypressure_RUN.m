@@ -9,7 +9,7 @@ N = 160;
 % Input parameters
 Da = 0.3; % Darcy number
 
-ep_factor = 0.5;  % ep = ep_factor * ds_y
+ep_factor = 0.034;  % ep = ep_factor * ds_y
 
 % Geometry params (pass into function as data structure)
 params.L = 3;
@@ -47,14 +47,14 @@ u2m = reshape(ug2,size(xx1,2),size(xx2,2)); % y-coords of computed velocities ev
 ummag = sqrt(u1m.^2 + u2m.^2);
 pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 
-% % % Plotting
+%% Plotting
+% Create grid for calculations
+[x1gg, x2gg] = meshgrid(xx1, xx2);
+
 addpath('..');
 addpath('../plotFuns'); 
 
-% Create grid for plotting
-[x1gg, x2gg] = meshgrid(xx1, xx2);
-
-%Stremlines
+%Stremlines (need grid points, x1gg and x2gg)
 figure
 plot_streamline_computed_fun(u1m, u2m, x1gg, x2gg, y(:,1), y(:,2), 'Stokeslets Only')
 hold on
@@ -68,4 +68,25 @@ ax.FontSize = 16;
 
 
 %% Error calculations
-[errorTable, errorMat] = calculate_errors_fun(U_approx, U_exact, P_approx, P_exact, dx,dy);
+% Create grid for calculations
+if isempty(x1gg) || isempty(x2gg)
+    [x1gg, x2gg] = meshgrid(xx1, xx2);
+end
+
+% Compute exact pressure
+% Need iscretization step
+ds_x = (params.xmax - params.xmin)/N;
+ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
+
+p_exact = exactPressureFun(x1gg, x2gg, params);
+
+[errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact, ds_x, ds_y);
+
+% plot
+figure
+pc = pcolor(x1gg,x2gg,p_exact);
+set(pc,'facealpha',0.8)
+shading interp
+hold on
+plot(y(:,1), y(:, 2), '.k')
+axis equal
