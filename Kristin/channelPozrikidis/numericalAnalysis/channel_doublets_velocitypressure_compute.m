@@ -1,5 +1,5 @@
 % Use MRS+SD to compute u at desired target locations given fluid parameters
-function [U, P_st, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, Da, beta_factor, params, x)
+function [U, P_st, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, beta_factor, params, x)
 
 % INPUTS:
 % N -- number of source points
@@ -36,6 +36,7 @@ L = params.L; % length of permeable portion of the channel
 H = params.H; % radius of the channel
 c = params.c; % extension length of the channel
 xm = (L + 2*c)/2; % midpoint of channel
+Da = params.Da; % Darcy number
 
 % Use Newton's method to compute eta eigenvalue
 eta = sqrt(2*Da);

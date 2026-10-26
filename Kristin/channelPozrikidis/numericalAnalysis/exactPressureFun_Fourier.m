@@ -1,4 +1,4 @@
-function p_exact = exactPressureFun(x1gg, x2gg, params)
+function p_exact = exactPressureFun_Fourier(x1gg, x2gg, params)
 
 % INPUTS:
 % x1gg -- coordinate grid for x1
@@ -15,7 +15,7 @@ H = params.H;
 % Computes exact pressure in channel using Fourier series construction
 bL = G*(c + tanh(eta*L/2)/eta); % note: bR = G*(L+2*c) - bL;
 
-N_terms = 500;%[50, 100, 200, 400]; % Number of Fourier terms in the sum
+N_terms = 1000;%[50, 100, 200, 400]; % Number of Fourier terms in the sum
 W = L + 2*c;         % Total domain width [0, W]
 
 % Compute Top-Bottom Component: p_tb(x,y) (Overflow-Safe)

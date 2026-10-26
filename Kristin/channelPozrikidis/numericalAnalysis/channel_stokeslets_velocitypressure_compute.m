@@ -1,5 +1,5 @@
 % Use MRS to compute u at desired target locations given fluid parameters
-function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, Da, params, x)
+function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, params, x)
 
 % INPUTS:
 % N -- number of source points
@@ -36,7 +36,8 @@ L = params.L; % length of permeable portion of the channel
 H = params.H; % radius of the channel
 c = params.c; % extension length of the channel
 xm = (L + 2*c)/2; % midpoint of channel
-eta = params.eta;
+eta = params.eta; % eigenvalue from boundary condition computation
+Da = params.Da; % Darcy number
 
 xmin = params.xmin;
 xmax = params.xmax;

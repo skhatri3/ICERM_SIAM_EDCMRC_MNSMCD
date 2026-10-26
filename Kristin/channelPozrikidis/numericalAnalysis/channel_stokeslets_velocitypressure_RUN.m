@@ -47,26 +47,6 @@ u2m = reshape(ug2,size(xx1,2),size(xx2,2)); % y-coords of computed velocities ev
 ummag = sqrt(u1m.^2 + u2m.^2);
 pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 
-%% Plotting
-% Create grid for calculations
-[x1gg, x2gg] = meshgrid(xx1, xx2);
-
-addpath('..');
-addpath('../plotFuns'); 
-
-%Stremlines (need grid points, x1gg and x2gg)
-figure
-plot_streamline_computed_fun(u1m, u2m, x1gg, x2gg, y(:,1), y(:,2), 'Stokeslets Only')
-hold on
-% indicate boundaries of permeable region
-plot([params.c, params.c], [0, 2*params.H], '--k', [params.L + params.c, params.L + params.c], [0, 2*params.H], '--k', 'LineWidth', 1.3)
-text(params.c - 0.1, -0.15, '$c$', 'Interpreter','latex', 'FontSize', 16)
-text(params.L + params.c - 0.3, -0.2, '$L+c$', 'Interpreter','latex', 'FontSize', 16)
-% formatting
-ax = gca;
-ax.FontSize = 16;
-
-
 %% Error calculations
 % Create grid for calculations
 if isempty(x1gg) || isempty(x2gg)
@@ -80,7 +60,7 @@ ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
 
 p_exact = exactPressureFun(x1gg, x2gg, params);
 
-[errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact, ds_x, ds_y);
+[errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact', ds_x, ds_y);
 
 % plot
 figure
@@ -90,3 +70,42 @@ shading interp
 hold on
 plot(y(:,1), y(:, 2), '.k')
 axis equal
+
+
+%% Plotting
+% Create grid for calculations
+[x1gg, x2gg] = meshgrid(xx1, xx2);
+
+addpath('..');
+addpath('../plotFuns'); 
+
+% Streamlines (need grid points, x1gg and x2gg)
+figure
+plot_streamline_computed_fun(u1m, u2m, x1gg, x2gg, y(:,1), y(:,2), 'Stokeslets Only')
+hold on
+% indicate boundaries of permeable region
+plot([params.c, params.c], [0, 2*params.H], '--k', [params.L + params.c, params.L + params.c], [0, 2*params.H], '--k', 'LineWidth', 1.3)
+text(params.c - 0.1, -0.15, '$c$', 'Interpreter','latex', 'FontSize', 16)
+text(params.L + params.c - 0.3, -0.2, '$L+c$', 'Interpreter','latex', 'FontSize', 16)
+% formatting
+ax = gca;
+ax.FontSize = 16;
+
+
+%% Error throughout channel
+figure
+plot(y(:,1),y(:,2),'k.')
+hold on
+abs_pressure_error = abs(p_exact - pm_mrs');
+pc = pcolor(x1gg, x2gg, abs_pressure_error);
+set(pc,'facealpha',0.8)
+shading interp
+colorbar('southoutside')
+set(gca,'FontSize',18)
+axis equal
+
+xlabel('$x$', 'Interpreter', 'latex')
+ylabel('$y$', 'Interpreter', 'latex')
+set(gca,'FontSize',18)
+
+title('Pressure error throughout channel - Stokeslets Only')
