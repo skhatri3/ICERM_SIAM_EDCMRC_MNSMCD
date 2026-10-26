@@ -7,7 +7,7 @@ clear; close all;
 N = 160;
 
 % Input parameters
-Da = 0.3; % Darcy number
+params.Da = 0.3; % Darcy number
 
 ep_factor = 0.034;  % ep = ep_factor * ds_y
 
@@ -22,8 +22,8 @@ params.ymax = params.ymin + 2*params.H;
 params.G = 10;
 
 % Use Newton's method to compute eta eigenvalue
-params.eta = sqrt(2*Da);
-fun = @(L) (Da-params.H/2)*L*cot(L*params.H)*cos(L*params.H) + cos(L*params.H)/2 - params.H*L*sin(L*params.H)/2;
+params.eta = sqrt(2*params.Da);
+fun = @(L) (params.Da-params.H/2)*L*cot(L*params.H)*cos(L*params.H) + cos(L*params.H)/2 - params.H*L*sin(L*params.H)/2;
 params.eta = fzero(fun, params.eta);
 
 % Define target points
@@ -37,7 +37,7 @@ x1 = x1m(:); %x-coords of points where computing velocity
 x2 = x2m(:); %y-coords of points where computing velocity
 
 % Compute velocity and pressure
-[U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep_factor, Da, params, [x1, x2]);
+[U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep_factor, params, [x1, x2]);
 
 % Reshape output variables
 ug1 = U(:,1);
@@ -49,16 +49,16 @@ pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 
 %% Error calculations
 % Create grid for calculations
-if isempty(x1gg) || isempty(x2gg)
+%if isempty(x1gg) || isempty(x2gg)
     [x1gg, x2gg] = meshgrid(xx1, xx2);
-end
+%end
 
 % Compute exact pressure
 % Need iscretization step
 ds_x = (params.xmax - params.xmin)/N;
 ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
 
-p_exact = exactPressureFun(x1gg, x2gg, params);
+p_exact = exactPressureFun_Fourier(x1gg, x2gg, params);
 
 [errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact', ds_x, ds_y);
 
@@ -103,9 +103,4 @@ shading interp
 colorbar('southoutside')
 set(gca,'FontSize',18)
 axis equal
-
-xlabel('$x$', 'Interpreter', 'latex')
-ylabel('$y$', 'Interpreter', 'latex')
-set(gca,'FontSize',18)
-
-title('Pressure error throughout channel - Stokeslets Only')
+title('Pressure error throughout channel - Stokeslets Only - Absolute Error')
