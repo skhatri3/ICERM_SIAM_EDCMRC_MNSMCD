@@ -52,7 +52,7 @@ ymax = params.ymax;
 pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
 
 % Discretization step
-ds_x = (xmax - xmin)/N;
+ds_x = (xmax - xmin)/Nx1;
 ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 
 % Define blob size based on wall discretization 

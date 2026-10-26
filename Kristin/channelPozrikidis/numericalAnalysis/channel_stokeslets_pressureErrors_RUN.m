@@ -10,7 +10,8 @@ clear; close all
 %       'midline' -- x = (L+2c)/2, 0 <= y<= 2H
 %       'permStart' -- x = c, 0 <= y<= 2H
 %       'permEnd' -- x = L + c, 0 <= y<= 2H
-targetType = 'permEnd';
+%targetType = 'permEnd';
+targetType = 'centerPoint';
 
 % Indicate which exact solution to use
 % Options:
@@ -111,6 +112,10 @@ for j =1:length(N_vec) % loop over number of source points
         x2 = x2(:);
         x1 = params.c*ones(size(x2));
     elseif strcmp(targetType, 'permEnd')
+        x2 = params.ymin+ds_y/2:ds_y:params.ymax-ds_y/2;
+        x2 = x2(:);
+        x1 = (params.L + params.c)*ones(size(x2));
+    elseif strcmp(targetType, 'centerPoint')
         x2 = params.ymin+ds_y/2:ds_y:params.ymax-ds_y/2;
         x2 = x2(:);
         x1 = (params.L + params.c)*ones(size(x2));

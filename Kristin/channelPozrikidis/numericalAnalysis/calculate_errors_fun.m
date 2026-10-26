@@ -31,12 +31,12 @@ if haveU
     v_error_max = max(max(abs(v_error)));
     
     % L1
-    u_error_L1 = dx*dy*sum(sum(abs(u_error)));
-    v_error_L1 = dx*dy*sum(sum(abs(v_error)));
+    u_error_L1 = sum(sum(abs(u_error)))/(Nx1*Nx2); %dx*dy*sum(sum(abs(u_error)));
+    v_error_L1 = sum(sum(abs(v_error)))/(Nx1*Nx2); %dx*dy*sum(sum(abs(v_error)));
     
     % L2
-    u_error_L2 = sqrt(dx*dy*sum(sum(u_error.^2)));
-    v_error_L2 = sqrt(dx*dy*sum(sum(v_error.^2)));
+    u_error_L2 = sqrt(sum(sum(u_error.^2))/(Nx1*Nx2)); %sqrt(dx*dy*sum(sum(u_error.^2)));
+    v_error_L2 = sqrt(sum(sum(v_error.^2))/(Nx1*Nx2)); %sqrt(dx*dy*sum(sum(v_error.^2)));
 
     % organize error calculations
     Emax = [Emax; u_error_max; v_error_max];

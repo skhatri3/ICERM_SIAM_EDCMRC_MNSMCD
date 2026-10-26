@@ -54,9 +54,13 @@ pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 %end
 
 % Compute exact pressure
-% Need iscretization step
+% Need discretization step
 ds_x = (params.xmax - params.xmin)/N;
 ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
+% Ricardo's version
+%ds = 0.02;   
+%Nx = ceil(L/ds); ds_x=L/Nx;  c0 =ceil(c0/ds_x)*ds_x;
+%Ny = ceil(2*H/ds); ds_y=2*H/Ny;
 
 p_exact = exactPressureFun_Fourier(x1gg, x2gg, params);
 
