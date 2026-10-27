@@ -49,9 +49,7 @@ pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 
 %% Error calculations
 % Create grid for calculations
-%if isempty(x1gg) || isempty(x2gg)
-    [x1gg, x2gg] = meshgrid(xx1, xx2);
-%end
+[x1gg, x2gg] = meshgrid(xx1, xx2);
 
 % Compute exact pressure
 % Need discretization step
@@ -64,7 +62,7 @@ ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
 
 p_exact = exactPressureFun_Fourier(x1gg, x2gg, params);
 
-[errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact', ds_x, ds_y);
+[errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact', Nx1, Nx2);
 
 % plot
 figure

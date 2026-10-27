@@ -1,5 +1,5 @@
 % Run MRS for given number of source points around channel N and for
-%       chosen targert points x1, x2
+%       chosen target points x1, x2
 % Computes errors in pressure based on exact pressure computation using
 %       Fourier series
 
@@ -144,7 +144,7 @@ for j =1:length(N_vec) % loop over number of source points
 
         % Compute errors
         diffp = p_comp - p_exact;
-        pL2error(k) = sqrt(ds_x*ds_y*sum(diffp.^2));
+        pL2error(k) = sqrt(sum(diffp.^2)/(Nx1*Nx2));
         pLinferror(k) = max(max(abs(diffp)));
     end
 

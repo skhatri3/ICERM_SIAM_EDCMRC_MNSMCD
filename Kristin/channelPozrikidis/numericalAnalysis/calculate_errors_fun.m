@@ -1,4 +1,4 @@
-function [errorTable, errorMat] = calculate_errors_fun(U_approx, U_exact, P_approx, P_exact, dx, dy)
+function [errorTable, errorMat] = calculate_errors_fun(U_approx, U_exact, P_approx, P_exact, Nx1, Nx2)
 
 % Computes LInf, L1, and L2 errors in velocity and pressure
 
@@ -31,12 +31,12 @@ if haveU
     v_error_max = max(max(abs(v_error)));
     
     % L1
-    u_error_L1 = sum(sum(abs(u_error)))/(Nx1*Nx2); %dx*dy*sum(sum(abs(u_error)));
-    v_error_L1 = sum(sum(abs(v_error)))/(Nx1*Nx2); %dx*dy*sum(sum(abs(v_error)));
+    u_error_L1 = sum(sum(abs(u_error)))/(Nx1*Nx2);
+    v_error_L1 = sum(sum(abs(v_error)))/(Nx1*Nx2);
     
     % L2
-    u_error_L2 = sqrt(sum(sum(u_error.^2))/(Nx1*Nx2)); %sqrt(dx*dy*sum(sum(u_error.^2)));
-    v_error_L2 = sqrt(sum(sum(v_error.^2))/(Nx1*Nx2)); %sqrt(dx*dy*sum(sum(v_error.^2)));
+    u_error_L2 = sqrt(sum(sum(u_error.^2))/(Nx1*Nx2));
+    v_error_L2 = sqrt(sum(sum(v_error.^2))/(Nx1*Nx2));
 
     % organize error calculations
     Emax = [Emax; u_error_max; v_error_max];
@@ -53,10 +53,10 @@ if haveP
     p_error_max = max(max(abs(p_error)));
 
     % L1
-    p_error_L1 = dx*dy*sum(sum(abs(p_error)));
+    p_error_L1 = sum(sum(abs(p_error)))/(Nx1*Nx2);
     
     % L2
-    p_error_L2 = sqrt(dx*dy*sum(sum(p_error.^2)));
+    p_error_L2 = sqrt(sum(sum(p_error.^2))/(Nx1*Nx2));
 
     % organize error calculations
     Emax = [Emax; p_error_max];
