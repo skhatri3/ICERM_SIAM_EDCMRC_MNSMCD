@@ -21,6 +21,14 @@ params.ymin = 0;
 params.ymax = params.ymin + 2*params.H;
 params.G = 10;
 
+% *** LOOK AT THIS ON WED 10/28 ***
+% Discretization so that computation includes beginning and end of
+% permeable region
+% Ricardo's version
+% % % ds = 0.02; c0 = params.c;
+% % % Nx = ceil(params.L/ds); ds_x=params.L/Nx;  c0 =ceil(c0/ds_x)*ds_x;
+% % % Ny = ceil(2*params.H/ds); ds_y=2*params.H/Ny;
+
 % Use Newton's method to compute eta eigenvalue
 params.eta = sqrt(2*params.Da);
 fun = @(L) (params.Da-params.H/2)*L*cot(L*params.H)*cos(L*params.H) + cos(L*params.H)/2 - params.H*L*sin(L*params.H)/2;
@@ -55,10 +63,7 @@ pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 % Need discretization step
 ds_x = (params.xmax - params.xmin)/N;
 ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
-% Ricardo's version
-%ds = 0.02;   
-%Nx = ceil(L/ds); ds_x=L/Nx;  c0 =ceil(c0/ds_x)*ds_x;
-%Ny = ceil(2*H/ds); ds_y=2*H/Ny;
+
 
 p_exact = exactPressureFun_Fourier(x1gg, x2gg, params);
 
