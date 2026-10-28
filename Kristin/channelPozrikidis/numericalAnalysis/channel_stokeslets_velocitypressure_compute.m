@@ -1,5 +1,5 @@
 % Use MRS to compute u at desired target locations given fluid parameters
-function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, params, x)
+function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ds_x, ep, params, x)
 
 % INPUTS:
 % N -- number of source points
@@ -48,7 +48,14 @@ ymax = params.ymax;
 pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
 
 % Discretization step
-ds_x = (xmax - xmin)/N;
+% % old version
+%ds_x = (xmax - xmin)/N;
+%ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
+% Discretization so that computation includes beginning and end of permeable region
+% % Ricardo's version
+%ds = (ymax - ymin)/N; c0 = params.c;
+%Nx = ceil(params.L/ds); ds_x=params.L/Nx;  c0 =ceil(c0/ds_x)*(ds_x); params.c = c0;
+%Ny = ceil(2*params.H/ds); ds_y=2*params.H/Ny;
 ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 
 % % Define blob size based on wall discretization
@@ -56,7 +63,8 @@ ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
 % ep = ds_y*ep_factor;
 
 %discretization step of top/bottom walls
-stb = xmin+ds_x/2:ds_x:xmax-ds_x/2;
+%stb = xmin+ds_x/2:ds_x:xmax-ds_x/2; % old version
+stb  = xmin + ((0:N-1) + 0.5)*ds_x;   
 stb = stb';
 %discretization step of left/right wall (inlet/outlet)
 slr = ymin+ds_y/2:ds_y:ymax-ds_y/2;

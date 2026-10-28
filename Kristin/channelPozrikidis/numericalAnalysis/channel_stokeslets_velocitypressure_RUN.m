@@ -9,25 +9,27 @@ N = 160;
 % Input parameters
 params.Da = 0.3; % Darcy number
 
-ep_factor = 0.034;  % ep = ep_factor * ds_y
+ep_factor = 0.02;  % ep = ep_factor * ds_y
 
 % Geometry params (pass into function as data structure)
 params.L = 3;
 params.H = 1;
-params.c = 2*params.H;
+params.c0 = 2*params.H;
+
+% inputs: L, c0 (desired c), dx0 (desired spacing)
+n0 = N*params.L/(params.L + 2*params.c0); % number of spacings between c and L+c
+m0 = (N - 1 - n0)/2; % number of grid points before c and after L+c
+m = min(round(m0), floor((N-2)/2));
+n  = N - 1 - 2*m;  
+% guarantee machine precision in spacing
+dx0 = params.L/n; p  = 50 - ceil(log2(N*dx0));
+ds_x = round(dx0*2^p)/2^p;
+params.c  = (m + 0.5)*ds_x;     % adjust c so that spacing lands on it
 params.xmin = 0;
 params.xmax = params.xmin + params.L + 2*params.c;
 params.ymin = 0;
 params.ymax = params.ymin + 2*params.H;
 params.G = 10;
-
-% *** LOOK AT THIS ON WED 10/28 ***
-% Discretization so that computation includes beginning and end of
-% permeable region
-% Ricardo's version
-% % % ds = 0.02; c0 = params.c;
-% % % Nx = ceil(params.L/ds); ds_x=params.L/Nx;  c0 =ceil(c0/ds_x)*ds_x;
-% % % Ny = ceil(2*params.H/ds); ds_y=2*params.H/Ny;
 
 % Use Newton's method to compute eta eigenvalue
 params.eta = sqrt(2*params.Da);
@@ -45,7 +47,7 @@ x1 = x1m(:); %x-coords of points where computing velocity
 x2 = x2m(:); %y-coords of points where computing velocity
 
 % Compute velocity and pressure
-[U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep_factor, params, [x1, x2]);
+[U, P, y] = channel_stokeslets_velocitypressure_compute(N, ds_x, ep_factor, params, [x1, x2]);
 
 % Reshape output variables
 ug1 = U(:,1);
@@ -64,14 +66,22 @@ pm_mrs = reshape(P, size(xx1,2), size(xx2,2));
 ds_x = (params.xmax - params.xmin)/N;
 ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/ds_x));
 
-
 p_exact = exactPressureFun_Fourier(x1gg, x2gg, params);
 
 [errorTable, errorMat] = calculate_errors_fun([], [], pm_mrs, p_exact', Nx1, Nx2);
 
-% plot
+%% Plot exact and computed pressures
 figure
+subplot(2,1,1)
 pc = pcolor(x1gg,x2gg,p_exact);
+set(pc,'facealpha',0.8)
+shading interp
+hold on
+plot(y(:,1), y(:, 2), '.k')
+axis equal
+
+subplot(2,1,2)
+pc = pcolor(x1gg,x2gg,pm_mrs');
 set(pc,'facealpha',0.8)
 shading interp
 hold on
@@ -111,3 +121,11 @@ colorbar('southoutside')
 set(gca,'FontSize',18)
 axis equal
 title('Pressure error throughout channel - Stokeslets Only - Absolute Error')
+
+figure
+surf(x1gg, x2gg, abs_pressure_error, 'EdgeColor','none');
+colorbar('southoutside')
+set(gca,'FontSize',18)
+title('Pressure error throughout channel - Stokeslets Only - Absolute Error')
+view(180,0)
+zlim([-5, max(max(abs_pressure_error))+1])
