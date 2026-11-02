@@ -79,6 +79,7 @@ shading interp
 hold on
 plot(y(:,1), y(:, 2), '.k')
 axis equal
+title('Exact Pressure')
 
 subplot(2,1,2)
 pc = pcolor(x1gg,x2gg,pm_mrs');
@@ -87,6 +88,7 @@ shading interp
 hold on
 plot(y(:,1), y(:, 2), '.k')
 axis equal
+title('Computed Pressure')
 
 
 %% Plotting

@@ -7,7 +7,7 @@ clear; close all;
 N = 160;
 
 % Input parameters
-Da = 0.3; % Darcy number
+params.Da = 0.3; % Darcy number
 
 ep_factor = 0.5;  % ep = ep_factor * ds_y
 ep_d_factor = 3; % ep_d = ep_d_factor * ep
@@ -34,7 +34,7 @@ x1 = x1m(:); %x-coords of points where computing velocity
 x2 = x2m(:); %y-coords of points where computing velocity
 
 % Compute velocity and pressure
-[U, P_sd, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, Da, beta_factor, params, [x1, x2]);
+[U, P_sd, P_gauss, y] = channel_doublets_velocitypressure_compute(N, ep_factor, ep_d_factor, beta_factor, params, [x1, x2]);
 
 % Reshape output variables
 ug1 = U(:,1);
@@ -47,6 +47,7 @@ pm_gauss = reshape(P_gauss, size(xx1,2), size(xx2,2));
 
 % % % Plotting
 addpath('..'); 
+addpath('../plotFuns'); 
 % method for plots
 method_for_plots = "St + SD";
 

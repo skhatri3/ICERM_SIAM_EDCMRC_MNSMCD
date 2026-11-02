@@ -105,7 +105,7 @@ u1_left_exact = pois_fun(y2_left); u1_right_exact = chi*u1_left_exact;
 u2_left_exact = zeros(size(slr)); u2_right_exact = zeros(size(slr));
 
 % Analytical velocity in permeable region
-idx_perm = find(c < y1_top & y1_top < L+c);
+idx_perm = find(c <= y1_top & y1_top <= L+c);
 u2_top_exact(idx_perm) = -Da*G*sinh(eta*(y1_top(idx_perm)-xm))/(eta*cosh(eta*L/2));
 u2_bot_exact(idx_perm) = Da*G*sinh(eta*(y1_top(idx_perm)-xm))/(eta*cosh(eta*L/2));
 
