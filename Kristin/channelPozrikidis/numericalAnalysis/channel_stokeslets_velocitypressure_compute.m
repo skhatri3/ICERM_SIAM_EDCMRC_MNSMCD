@@ -1,5 +1,5 @@
 % Use MRS to compute u at desired target locations given fluid parameters
-function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ds_x, ep, params, x)
+function [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep_factor, params, x)
 
 % INPUTS:
 % N -- number of source points
@@ -56,15 +56,16 @@ pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
 %ds = (ymax - ymin)/N; c0 = params.c;
 %Nx = ceil(params.L/ds); ds_x=params.L/Nx;  c0 =ceil(c0/ds_x)*(ds_x); params.c = c0;
 %Ny = ceil(2*params.H/ds); ds_y=2*params.H/Ny;
-ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
+ds_y = params.ds_y;
+ds_x = params.ds_x;
 
 % % Define blob size based on wall discretization
 % Note: comment out if assigning ep as input
-% ep = ds_y*ep_factor;
+ ep = ds_y*ep_factor;
 
 %discretization step of top/bottom walls
-%stb = xmin+ds_x/2:ds_x:xmax-ds_x/2; % old version
-stb  = xmin + ((0:N-1) + 0.5)*ds_x;   
+stb = xmin+ds_x/2:ds_x:xmax-ds_x/2; % old version
+%stb  = xmin + ((0:N-1) + 0.5)*ds_x;
 stb = stb';
 %discretization step of left/right wall (inlet/outlet)
 slr = ymin+ds_y/2:ds_y:ymax-ds_y/2;
@@ -78,18 +79,6 @@ y1_right = xmax*ones(size(slr));   y2_right = slr; % right wall coordinates (y1_
 y1 = [y1_top; y1_bot; y1_left; y1_right]; %x-coordinates of all boundary points
 y2 = [y2_top; y2_bot; y2_left; y2_right]; %y-coordinates of all boundary points
 y = [y1, y2];
-
-% Define normal vectors
-normals_top = zeros(length(stb),2); % unit normals for top:
-normals_top(:,2) = 1;
-normals_bot = zeros(length(stb),2); % unit normals for bottom
-normals_bot(:,2) = -1;
-normals_left = zeros(length(slr),2); % unit normals for left  wall 
-normals_left(:,1) = -1;
-normals_right = zeros(length(slr),2); % unit normals for right wall 
-normals_right(:,1) = 1;
-% normals on full boundary
-normals = [normals_top; normals_bot; normals_left; normals_right];
 
 % Define quadrature weights cooresponding to wall coordinates.
 % Currently using midpoint rule.
