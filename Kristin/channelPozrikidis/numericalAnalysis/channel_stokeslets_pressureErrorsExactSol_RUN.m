@@ -108,7 +108,7 @@ for j =1:length(N_vec) % loop over number of source points
     if strcmp(targetType, 'midline')
         x2 = params.ymin+ds_y/2:ds_y:params.ymax-ds_y/2;
         x2 = x2(:);
-        x1 = ((params.L + 2*params.c)/2)*ones(size(x2));
+        x1 = (params.L/2 + params.c)*ones(size(x2));
     elseif strcmp(targetType, 'permStart')
         x2 = params.ymin+ds_y/2:ds_y:params.ymax-ds_y/2;
         x2 = x2(:);
@@ -118,9 +118,8 @@ for j =1:length(N_vec) % loop over number of source points
         x2 = x2(:);
         x1 = (params.L + params.c)*ones(size(x2));
     elseif strcmp(targetType, 'centerPoint')
-        x2 = params.ymin+ds_y/2:ds_y:params.ymax-ds_y/2;
-        x2 = x2(:);
-        x1 = (params.L + params.c)*ones(size(x2));
+        x1 = params.L/2 + params.c;
+        x2 = params.H;
     end
 
     % blob sizes for loop
