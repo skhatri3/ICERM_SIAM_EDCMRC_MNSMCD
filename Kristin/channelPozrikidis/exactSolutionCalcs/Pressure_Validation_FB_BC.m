@@ -120,83 +120,83 @@ legend('Location', 'northwest', 'FontSize', 11);
 set(gca, 'FontSize', 11);
 
 
-%% Linearization approach
-% Treat hyperbolic sine as a perturbation to linear
-%xi = x(x>c & x<L+c);
-p_linear = bL*(1-2*x/(L+2*c));
-ppert_exact = p_exact - p_linear;
-
-figure
-plot(x, p_exact, 'LineWidth', 2)
-hold on
-plot(x, p_linear, '--', 'LineWidth', 2)
-plot(x, ppert_exact, 'k', 'LineWidth', 1.3)
-
-legend('Hyp. sine pressure', 'Constant press. grad.', 'Difference')
-grid on
-xlim([0, L+2*c])
-
-%% Check Fourier cosine series for ppert_exact
-% Compute Fourier cosine series
-maxErrAbs = zeros(size(N_vec));
-L2Err = zeros(size(N_vec));
-id = 1;
-for N_terms = N_vec
-    ppert_fourier = zeros(size(x));
-    for n = 1:2:N_terms % loop over odd terms
-        lambda_n = n*pi/W;
-
-        % Fourier coefficients
-        an = (eta^2*(1 - cos(c*lambda_n)) + lambda_n^2 + eta*lambda_n*sin(c*lambda_n)*tanh(L*eta/2))/(lambda_n^2*(eta^2 + lambda_n^2));
-
-        % Update Fourier Series sum
-        ppert_fourier = ppert_fourier + an*cos(lambda_n*x);
-    end
-    ppert_fourier = (4*G/W)*ppert_fourier; % multiply by constant from Fourier computation
-
-
-    % Error computation
-    errAbs = abs(ppert_fourier - ppert_exact);
-    maxErrAbs(id) = max(errAbs);
-    L2Err(id) = norm(ppert_fourier - ppert_exact);
-    id = id+1;
-
-    % Plot results
-    % error plots
-    figure(11)
-    hold on
-    plot(x, errAbs, 'LineWidth', 1.3)
-end
-
-%formatting
-title('Fourier cosine series error for pressure boundary condition')
-box on
-xlabel('$x$', 'Interpreter', 'latex')
-ylabel('Absolute error')
-if length(N_vec) == 4
-    legend(['N=', num2str(N_vec(1)) ', max abs error=', num2str(maxErrAbs(1)), ', L2 error=', num2str(L2Err(1))],...
-        ['N=', num2str(N_vec(2)) ', max abs error=', num2str(maxErrAbs(2)), ', L2 error=', num2str(L2Err(2))],...
-        ['N=', num2str(N_vec(3)) ', max abs error=', num2str(maxErrAbs(3)), ', L2 error=', num2str(L2Err(3))],...
-        ['N=', num2str(N_vec(4)) ', max abs error=', num2str(maxErrAbs(4)), ', L2 error=', num2str(L2Err(4))],...
-        'Location', 'best')
-end
-ax = gca; ax.FontSize = 14;
-
-% plot of exact and series
-figure
-plot(x, ppert_exact, 'r-', 'LineWidth', 2.5, 'DisplayName', 'Exact Piecewise p(x,0)');
-hold on;
-plot(x, ppert_fourier, 'b--', 'LineWidth', 1.5, 'DisplayName', sprintf('Fourier Cosine Series (N = %d)', N_terms));
-
-% Formatting
-grid on;
-xline(c, 'k:', 'LineWidth', 1.2, 'HandleVisibility', 'off');
-xline(L+c, 'k:', 'LineWidth', 1.2, 'HandleVisibility', 'off');
-xlabel('x', 'FontSize', 12);
-ylabel('p(x,0)', 'FontSize', 12);
-title('Convergence of Fourier Cosine Series to Piecewise Boundary Condition', 'FontSize', 14);
-legend('Location', 'northwest', 'FontSize', 11);
-set(gca, 'FontSize', 11);
+% %% Linearization approach
+% % Treat hyperbolic sine as a perturbation to linear
+% %xi = x(x>c & x<L+c);
+% p_linear = bL*(1-2*x/(L+2*c));
+% ppert_exact = p_exact - p_linear;
+% 
+% figure
+% plot(x, p_exact, 'LineWidth', 2)
+% hold on
+% plot(x, p_linear, '--', 'LineWidth', 2)
+% plot(x, ppert_exact, 'k', 'LineWidth', 1.3)
+% 
+% legend('Hyp. sine pressure', 'Constant press. grad.', 'Difference')
+% grid on
+% xlim([0, L+2*c])
+% 
+% %% Check Fourier cosine series for ppert_exact
+% % Compute Fourier cosine series
+% maxErrAbs = zeros(size(N_vec));
+% L2Err = zeros(size(N_vec));
+% id = 1;
+% for N_terms = N_vec
+%     ppert_fourier = zeros(size(x));
+%     for n = 1:2:N_terms % loop over odd terms
+%         lambda_n = n*pi/W;
+% 
+%         % Fourier coefficients
+%         an = (eta^2*(1 - cos(c*lambda_n)) + lambda_n^2 + eta*lambda_n*sin(c*lambda_n)*tanh(L*eta/2))/(lambda_n^2*(eta^2 + lambda_n^2));
+% 
+%         % Update Fourier Series sum
+%         ppert_fourier = ppert_fourier + an*cos(lambda_n*x);
+%     end
+%     ppert_fourier = (4*G/W)*ppert_fourier; % multiply by constant from Fourier computation
+% 
+% 
+%     % Error computation
+%     errAbs = abs(ppert_fourier - ppert_exact);
+%     maxErrAbs(id) = max(errAbs);
+%     L2Err(id) = norm(ppert_fourier - ppert_exact);
+%     id = id+1;
+% 
+%     % Plot results
+%     % error plots
+%     figure(11)
+%     hold on
+%     plot(x, errAbs, 'LineWidth', 1.3)
+% end
+% 
+% %formatting
+% title('Fourier cosine series error for pressure boundary condition')
+% box on
+% xlabel('$x$', 'Interpreter', 'latex')
+% ylabel('Absolute error')
+% if length(N_vec) == 4
+%     legend(['N=', num2str(N_vec(1)) ', max abs error=', num2str(maxErrAbs(1)), ', L2 error=', num2str(L2Err(1))],...
+%         ['N=', num2str(N_vec(2)) ', max abs error=', num2str(maxErrAbs(2)), ', L2 error=', num2str(L2Err(2))],...
+%         ['N=', num2str(N_vec(3)) ', max abs error=', num2str(maxErrAbs(3)), ', L2 error=', num2str(L2Err(3))],...
+%         ['N=', num2str(N_vec(4)) ', max abs error=', num2str(maxErrAbs(4)), ', L2 error=', num2str(L2Err(4))],...
+%         'Location', 'best')
+% end
+% ax = gca; ax.FontSize = 14;
+% 
+% % plot of exact and series
+% figure
+% plot(x, ppert_exact, 'r-', 'LineWidth', 2.5, 'DisplayName', 'Exact Piecewise p(x,0)');
+% hold on;
+% plot(x, ppert_fourier, 'b--', 'LineWidth', 1.5, 'DisplayName', sprintf('Fourier Cosine Series (N = %d)', N_terms));
+% 
+% % Formatting
+% grid on;
+% xline(c, 'k:', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+% xline(L+c, 'k:', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+% xlabel('x', 'FontSize', 12);
+% ylabel('p(x,0)', 'FontSize', 12);
+% title('Convergence of Fourier Cosine Series to Piecewise Boundary Condition', 'FontSize', 14);
+% legend('Location', 'northwest', 'FontSize', 11);
+% set(gca, 'FontSize', 11);
 
 
 
@@ -234,7 +234,9 @@ for n = 1:2:N_terms % loop over odd terms
     % Fourier coefficients a_n (for odd n)
     a_n = (eta^2*(1 - cos(c*lambda_n)) + lambda_n^2 + eta*lambda_n*sin(c*lambda_n)*tanh(L*eta/2))/(lambda_n^2*(eta^2 + lambda_n^2));
     
-    Y_profile = exp(-lambda_n*(2*H - Y)) + exp(-lambda_n * Y);
+    Y_profile = (exp(-lambda_n*Y) - exp(-lambda_n*(4*H-Y)) + exp(-lambda_n*(2*H-Y)) ...
+        - exp(-lambda_n*(2*H+Y)))/(1 - exp(-4*H*lambda_n));
+    %Y_profile = exp(-lambda_n*(2*H - Y)) + exp(-lambda_n * Y); % missing denominator?
     
     p_tb = p_tb + a_n*Y_profile.*cos(lambda_n * X);
 end
@@ -248,8 +250,8 @@ for n = 1:2:N_terms % loop over odd terms
     
     % Numerically stable horizontal ratio:
     % (cosh(mu_n*(X-W)) - cosh(mu_n*X)) / sinh(mu_n*W)
-    % Evaluates directly to [exp(-mu_n*X) - exp(-mu_n*(W-X))]
-    X_profile = exp(-mu_n * X) - exp(-mu_n * (W - X));
+    %X_profile = exp(-mu_n * X) - exp(-mu_n * (W - X)); % missing denominator?
+    X_profile = (exp(-mu_n*X) - exp(-mu_n*(W - X))) / (1 + exp(-mu_n*W));
     
     % Coefficient without csch(mu_n*W) since it was absorbed above
     coeff = 1 / (n^2);

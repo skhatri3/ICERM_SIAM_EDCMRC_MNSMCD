@@ -40,9 +40,9 @@ params.Da = 0.3; % Darcy number
 % Geometry params (pass into function as data structure)
 params.L = 3;
 params.H = 1;
-params.c0 = 2*params.H;
+params.c = 2*params.H;
 params.xmin = 0;
-params.xmax = params.xmin + params.L + 2*params.c0;
+params.xmax = params.xmin + params.L + 2*params.c;
 params.ymin = 0;
 params.ymax = params.ymin + 2*params.H;
 params.G = 10;
@@ -100,8 +100,9 @@ for j =1:length(N_vec) % loop over number of source points
     % source points
     
     % % OLD VERSION
-    %ds_y = (params.ymax - params.ymin)/N;
-    %ds_x = (params.xmax - params.xmin)/( ceil((params.xmax - params.xmin)/ds_y));
+    ds_y = (params.ymax - params.ymin)/N;
+    ds_x = (params.xmax - params.xmin)/( ceil((params.xmax - params.xmin)/ds_y));
+    params.ds_y = ds_y; params.ds_x = ds_x;
     
     % % Define target points
     % Target point choice based on targetType defined before loops
@@ -130,7 +131,7 @@ for j =1:length(N_vec) % loop over number of source points
         ep = epvals(k);
 
         % Compute velocity and pressure at chosen target points
-        [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, params, [x1, x2], ds_x, ds_y);
+        [U, P, y] = channel_stokeslets_velocitypressure_compute(N, ep, params, [x1, x2]);
         u1_comp = U(:,1);
         u2_comp = U(:,2);
         umag_comp = sqrt(u1_comp.^2 + u2_comp.^2);
@@ -145,6 +146,8 @@ for j =1:length(N_vec) % loop over number of source points
 
         % Compute errors
         diffp = p_comp - p_exact;
+        Nx1 = length(x1);
+        Nx2 = length(x2);
         pL2error(k) = sqrt(sum(diffp.^2)/(Nx1*Nx2));
         pLinferror(k) = max(max(abs(diffp)));
     end
