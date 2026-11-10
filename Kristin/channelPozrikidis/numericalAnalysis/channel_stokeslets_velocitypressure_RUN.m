@@ -7,7 +7,7 @@ clear; close all;
 N = 320;
 
 % Input parameters
-params.Da = 0.4; % Darcy number
+params.Da = 0.3; % Darcy number
 
 ep_factor = 1;  % ep = ep_factor * ds_y
 
@@ -21,7 +21,7 @@ params.xmin = 0;
 params.xmax = params.xmin + params.L + 2*params.c;
 params.ymin = 0;
 params.ymax = params.ymin + 2*params.H;
-params.G = 10;
+params.G = 4;
 % Discretization step
 params.ds_x = (params.xmax - params.xmin)/N;
 params.ds_y = (params.ymax - params.ymin)/( ceil((params.ymax - params.ymin)/params.ds_x));
@@ -80,6 +80,7 @@ hold on
 plot(y(:,1), y(:, 2), '.k')
 axis equal
 title('Exact Pressure')
+colorbar('southoutside')
 
 subplot(2,1,2)
 pc = pcolor(x1gg,x2gg,pm_mrs');
@@ -89,6 +90,7 @@ hold on
 plot(y(:,1), y(:, 2), '.k')
 axis equal
 title('Computed Pressure')
+colorbar('southoutside')
 
 
 %% Plotting
@@ -136,6 +138,7 @@ colorbar('southoutside')
 set(gca,'FontSize',18)
 axis equal
 title('Pressure error throughout channel - Stokeslets Only - Absolute Error')
+
 
 figure
 surf(x1gg, x2gg, abs_pressure_error, 'EdgeColor','none');

@@ -46,6 +46,7 @@ ymax = params.ymax;
 
 % Poiseuille flow function for inlet and outlet
 pois_fun = @(y) -G*(y - ymin).*(y - ymax)/2;
+%pois_fun = @(y) -G*(y/(2*H))*(1 - y/(2*H)); % when ymin = 0
 
 % Discretization step
 % % old version
