@@ -4,12 +4,12 @@
 clear; close all;
 
 % Number of source points
-N = 160;
+N = 320;
 
 % Input parameters
-params.Da = 0.3; % Darcy number
+params.Da = 0.4; % Darcy number
 
-ep_factor = 0.5;  % ep = ep_factor * ds_y
+ep_factor = 1;  % ep = ep_factor * ds_y
 
 % Geometry params (pass into function as data structure)
 params.L = 3;

@@ -11,13 +11,13 @@ clear; close all
 %       'permStart' -- x = c, 0 <= y<= 2H
 %       'permEnd' -- x = L + c, 0 <= y<= 2H
 %targetType = 'permEnd';
-targetType = 'centerPoint';
+targetType = 'midline';
 
 % Indicate which exact solution to use
 % Options:
 %       'fourier' -- Fourier series solution
 %       'bernardi' -- Bernardi, et al. solution
-solutionType = 'bernardi';
+solutionType = 'fourier';
 
 % Create directory for saving figures
 dformat = datetime; % Put date and time in directory name

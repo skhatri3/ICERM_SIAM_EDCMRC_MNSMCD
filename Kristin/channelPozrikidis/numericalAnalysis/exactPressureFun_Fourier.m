@@ -40,7 +40,7 @@ for n = 1:2:N_terms % loop over odd terms
     
     % Numerically stable horizontal ratio:
     % (cosh(mu_n*(X-W)) - cosh(mu_n*X)) / sinh(mu_n*W)
-    X_profile = (exp(-mu_n*X) - exp(-mu_n*(W - X))) / (1 + exp(-mu_n*W));
+    X_profile = (exp(-mu_n*X) - exp(-mu_n*(W - X)))/(1 + exp(-mu_n*W));
     
     % Coefficient without csch(mu_n*W) since it was absorbed above
     p_lr = p_lr + (1/(n^2))*X_profile.* sin(mu_n*Y);
