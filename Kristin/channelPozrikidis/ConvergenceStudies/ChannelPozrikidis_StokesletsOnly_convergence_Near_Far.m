@@ -45,18 +45,18 @@ G = 4;
 chi = 1;
  
 % channel set-up
-L = 3;
-c = 2;
-H = 1;
+L = 3;                            % length of permeable region
+c = 2;                            % length of solid region on half of channel
+H = 1;                            % radius of channel
 xmin = 0;
 xmax = xmin + L + 2*c;
 ymin = 0;
 ymax = ymin + 2*H;
-Ly = ymax - ymin;
-Lx = xmax - xmin;
-xm = (xmax + xmin)/2; % midpoint of channel
-perm_min = c;  %start of permeable part
-perm_max = L + c;  %end of permeable part
+Ly = ymax - ymin;          % height of channel
+Lx = xmax - xmin;          % length of channel
+xm = (xmax + xmin)/2;  % midpoint of channel
+perm_min = c;               % start of permeable part
+perm_max = L + c;        % end of permeable part
 
 % Use Newton's method to compute eta eigenvalue
 eta = sqrt(2*Da);
@@ -84,7 +84,7 @@ title('Horizontal Velocity Error (Linf), Stokeslets Only, using blob $\psi$',...
 hold off;
 
 % Epsilon values
-epvals = logspace(-3,-0.55,20);
+epvals = logspace(-3,-0.4,20);
 
 % Set up error matrix and initialize figure
 uErrorMatrixL2 = zeros(length(Nvals),length(epvals));
@@ -97,6 +97,7 @@ for k = 1:length(Nvals)
     N = Nvals(k);
     disp(['N=', num2str(N)]);
     %discretization of channel
+    %ds = (ymax-ymin)/N; % change later so that ds_x and ds_y are different
     ds_x = (xmax - xmin)/N;
     ds_y = (ymax - ymin)/( ceil((ymax - ymin)/ds_x));
     
@@ -113,9 +114,9 @@ for k = 1:length(Nvals)
         disp(['epsilon=', num2str(ep1)])
 
         %% Discretization
-        %discretization step of top/bottom walls
+        %discretization of top/bottom walls
         stb = xmin+ds_x/2:ds_x:xmax-ds_x/2; stb = stb';
-        %discretization step of left/right wall (inlet/outlet)
+        %discretization of left/right wall (inlet/outlet)
         slr = ymin+ds_y/2:ds_y:ymax-ds_y/2; slr = slr';
         % Define coordinates on each wall (x-coord,y-coord) (source points)
         y1_top = stb;   y2_top = ymax*ones(size(stb)); % top wall coordinates (y1_top,y2_top)
@@ -139,10 +140,10 @@ for k = 1:length(Nvals)
         y1_right = xmax*ones(size(slr));   y2_right = slr; % right wall coordinates (y1_right,y2_right)
         %unit normals for right side
         normals_right=zeros(length(y1_right),2);
-        normals_right(:,1)=-1;
-        %far_idx = find( sqrt(ep1) < y2_right & y2_right < ymax-sqrt(ep1));
-        %y2mid = y2right(far_idx);
-        %y1mid = xmax/2*ones(size(y2mid));
+        normals_right(:,1)=1;
+        far_idx = find( sqrt(ep1) < y2_right & y2_right < ymax-sqrt(ep1));
+        y2_mid = y2_right(far_idx);
+        y1_mid = xm*ones(size(y2_mid));
 
         %y1f=[y1; y1right];
         %y2f=[y2; y2right];
@@ -192,8 +193,14 @@ for k = 1:length(Nvals)
         %top
         % normals_top=zeros(length( y1_top),2);
         % normals_top(:,2)=1;
-        Rtop = ds_x*sum(dot(normals_top, [u1_top(1:length(y1_top)), u2_top(1:length(y1_top))]));
+        %Rtop = ds_x*sum(dot(normals_top, [u1_top(1:length(y1_top)), u2_top(1:length(y1_top))]));
 
+        idx_flux = find(y1_top >= c & y1_top <= xm);
+        y1_flux = y1_top(idx_flux);
+        normals_top_flux=zeros(length(y1_flux),2);
+        normals_top_flux(:,2)=1;
+        Rtop = ds_x*sum(dot(normals_top_flux, [u1_top(idx_flux), u2_top(idx_flux)]));
+        
         % Change to evaluate at x = 2.5 instead of at outlet
         %x2_out= (ymin+ds/2:ds:ymax-ds/2)';
         %x1_out= xmax/2*ones(size(x2_out)); % xmax/2 for x = 2.5
