@@ -28,10 +28,6 @@ format long
 mu = 1;
 % Darcy number
 Da = 0.3;
-% Use Newton's method to compute eta eigenvalue
-eta = sqrt(2*Da);
-fun = @(lam) (Da-H/2)*lam*cot(lam*H)*cos(lam*H) + cos(lam*H)/2 - H*lam*sin(lam*H)/2;
-eta = fzero(fun, eta);
 
 % number of points on boundary where velocity is set and force is computed 
 Nvals = [40 60 80 100 120 140 160 180 200 220 240 260 280 300 320];
@@ -56,6 +52,11 @@ perm_max = L + c;  %end of permeable part
 Ly = ymax - ymin;
 Lx = xmax - xmin;
 xm = (xmax + xmin)/2; % midpoint of channel
+
+% Use Newton's method to compute eta eigenvalue
+eta = sqrt(2*Da);
+fun = @(lam) (Da-H/2)*lam*cot(lam*H)*cos(lam*H) + cos(lam*H)/2 - H*lam*sin(lam*H)/2;
+eta = fzero(fun, eta);
 
 % Initialize Plots
 fig1 = figure;
@@ -128,7 +129,7 @@ for k = 1:length(Nvals)
         y1_right = xmax*ones(size(slr));   y2_right = slr; % right wall coordinates (y1_right,y2_right)
         %unit normals for right side
         normals_right=zeros(length(y1_right),2);
-        normals_right(:,1)=-1;
+        normals_right(:,1)=1;
         y1 = [y1_top; y1_bot; y1_left; y1_right]; %x-coordinates of all boundary points
         y2 = [y2_top; y2_bot; y2_left; y2_right]; %y-coordinates of all boundary points
         y = [y1, y2];
@@ -152,14 +153,14 @@ for k = 1:length(Nvals)
         u2_top(idx_perm) = -Da*G*sinh(eta*(y1_top(idx_perm)-xm))/(eta*cosh(eta*L/2));
         u2_bot(idx_perm) = Da*G*sinh(eta*(y1_top(idx_perm)-xm))/(eta*cosh(eta*L/2));
         % inlet: poiseuille flow
-        u1_left=G*(y2_side/(2*H)).*(1-y2_side/(2*H));
-        u2_left=zeros(size(y1_side));
+        u1_left=G*(y2_left/(2*H)).*(1-y2_left/(2*H));
+        u2_left=zeros(size(y1_left));
         % outlet: scaled poiseuille flow
-        u1_right = chi*G*(y2_side/(2*H)).*(1-y2_side/(2*H));
-        u2_right = zeros(size(y1_side));
+        u1_right = chi*G*(y2_left/(2*H)).*(1-y2_left/(2*H));
+        u2_right = zeros(size(y1_left));
         
-        u1 = [u1_top; u1_bot; u1_left, u1_right];
-        u2 = [u2_top; u2_bot; u2_left, u2_right];
+        u1 = [u1_top; u1_bot; u1_left; u1_right];
+        u2 = [u2_top; u2_bot; u2_left; u2_right];
 
         %% MRS
         % Step 1: Use boundary velocities to compute the forces on the boundary
@@ -174,11 +175,11 @@ for k = 1:length(Nvals)
 
         % Check flow rates 
         % inlet flow rate
-        Rin = ds*sum(dot(normals_left, [u1_left, u2_left]));
+        Rin = ds_x*sum(dot(normals_left, [u1_left, u2_left]));
         % top flow rate
-        Rtop = ds*sum(dot(normals_top, [ufull(1:length(y1_top)), vfull(1:length(y1_top))]));
+        Rtop = ds_y*sum(dot(normals_top, [ufull(1:length(y1_top)), vfull(1:length(y1_top))]));
         % outlet flow rate
-        Rout = ds*sum(dot(normals_right, [u1_right, u2_right]));
+        Rout = ds_x*sum(dot(normals_right, [u1_right, u2_right]));
 
         %% Calculate Current Errors
         % Using the difference between the inlet velocities and velocities
